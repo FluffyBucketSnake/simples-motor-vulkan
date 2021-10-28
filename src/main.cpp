@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -13,7 +14,10 @@ class App {
     }
 
   private:
-    void iniciar() { criarInstancia(); }
+    void iniciar() {
+        criarInstancia();
+        escolherDispositivoFisico();
+    }
 
     void criarInstancia() {
         if (kAtivarCamadasDeValidacao &&
@@ -64,6 +68,39 @@ class App {
         return true;
     }
 
+    void escolherDispositivoFisico() {
+        auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
+
+        auto resultado =
+            std::find_if(dispositivosFisicos.begin(), dispositivosFisicos.end(),
+                         verificarDispositivo);
+
+        if (resultado == dispositivosFisicos.end()) {
+            throw std::runtime_error(
+                "Não foi encontrado um dispositivo físico compartível.");
+        }
+
+        dispositivoFisico_ = *resultado;
+    }
+
+    static bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
+        // auto propriedades = dispositivo.getProperties();
+        // auto capacidades = dispositivo.getFeatures();
+
+        return verificarFilasDoDispositivo(dispositivo);
+    }
+
+    static bool verificarFilasDoDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
+        auto familias = dispositivo.getQueueFamilyProperties();
+
+        return count_if(familias.begin(), familias.end(),
+                        [](const vk::QueueFamilyProperties& familia) {
+                            return familia.queueFlags &
+                                   vk::QueueFlagBits::eCompute;
+                        }) > 0;
+    }
+
     void destruir() { instancia_.destroy(); }
 
 #ifdef NDEBUG
@@ -76,6 +113,7 @@ class App {
         "VK_LAYER_KHRONOS_validation"};
 
     vk::Instance instancia_;
+    vk::PhysicalDevice dispositivoFisico_;
 };
 }  // namespace smv
 
