@@ -17,6 +17,7 @@ class App {
     void iniciar() {
         criarInstancia();
         escolherDispositivoFisico();
+        criarDispositivoLogicoEFilas();
     }
 
     void criarInstancia() {
@@ -92,16 +93,59 @@ class App {
 
     static bool verificarFilasDoDispositivo(
         const vk::PhysicalDevice& dispositivo) {
-        auto familias = dispositivo.getQueueFamilyProperties();
-
-        return count_if(familias.begin(), familias.end(),
-                        [](const vk::QueueFamilyProperties& familia) {
-                            return familia.queueFlags &
-                                   vk::QueueFlagBits::eCompute;
-                        }) > 0;
+        return buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eCompute)
+            .has_value();
     }
 
-    void destruir() { instancia_.destroy(); }
+    void criarDispositivoLogicoEFilas() {
+        uint32_t familiaComputacao =
+            buscarFamiliaDeFilas(dispositivoFisico_,
+                                 vk::QueueFlagBits::eCompute)
+                .value();
+
+        float prioridadeComputacao = 1.0f;
+        vk::DeviceQueueCreateInfo infoComputacao;
+        infoComputacao.queueFamilyIndex = familiaComputacao;
+        infoComputacao.queueCount = 1;
+        infoComputacao.pQueuePriorities = &prioridadeComputacao;
+
+        vk::PhysicalDeviceFeatures capacidades;
+
+        vk::DeviceCreateInfo info;
+        info.pEnabledFeatures = &capacidades;
+        info.queueCreateInfoCount = 1;
+        info.pQueueCreateInfos = &infoComputacao;
+        if (kAtivarCamadasDeValidacao) {
+            info.enabledLayerCount =
+                static_cast<uint32_t>(kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+        }
+
+        dispositivo_ = dispositivoFisico_.createDevice(info);
+        filaComputacao_ = dispositivo_.getQueue(familiaComputacao, 0);
+    }
+
+    static std::optional<uint32_t> buscarFamiliaDeFilas(
+        const vk::PhysicalDevice& dispositivo,
+        vk::QueueFlagBits tipo) {
+        auto familias = dispositivo.getQueueFamilyProperties();
+
+        auto familia =
+            find_if(familias.begin(), familias.end(),
+                    [tipo](auto familia) { return familia.queueFlags & tipo; });
+
+        bool foiEncontrada = familia == familias.end();
+        if (foiEncontrada) {
+            return {};
+        }
+
+        return std::distance(familias.begin(), familia);
+    }
+
+    void destruir() {
+        dispositivo_.destroy();
+        instancia_.destroy();
+    }
 
 #ifdef NDEBUG
     const bool kAtivarCamadasDeValidacao = false;
@@ -114,6 +158,9 @@ class App {
 
     vk::Instance instancia_;
     vk::PhysicalDevice dispositivoFisico_;
+    vk::Device dispositivo_;
+
+    vk::Queue filaComputacao_;
 };
 }  // namespace smv
 
