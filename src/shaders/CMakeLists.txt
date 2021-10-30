@@ -5,4 +5,4 @@ file(GLOB VERTEX_SOURCES *.vert)
 set(SOURCES ${COMPUTE_SOURCES} ${FRAMENT_SOURCES} ${VERTEX_SOURCES})
 
 # Compilar shaders
-add_shader_library(shaders ${SOURCES})
+add_shader_library(shaders GLSL SOURCES ${SOURCES})

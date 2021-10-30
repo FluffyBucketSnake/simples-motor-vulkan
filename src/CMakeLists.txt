@@ -16,6 +16,6 @@ target_link_libraries(motor PRIVATE vulkan)
 target_link_libraries(motor PRIVATE glfw)
 
 # Adicionar shaders
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/shader shader)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/shaders shaders)
 
 add_dependencies(motor shaders)
