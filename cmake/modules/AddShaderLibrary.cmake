@@ -3,6 +3,11 @@ find_program(GLSLC_EXECUTABLE glslc HINTS Vulkan::glslc)
 
 function(add_shader_library TARGET)
     cmake_parse_arguments(PARSE_ARGV 1 ARG "GLSL;HLSL" "ENV;FORMAT" "SOURCES")
+    if (ARG_GLSL)
+        set(GLSLC_LANG glsl)
+    elseif (ARG_HLSL)
+        set(GLSLC_LANG hlsl)
+    endif()
     foreach(SHADER ${ARG_SOURCES})
         get_filename_component(FILENAME ${SHADER} NAME)
         set(OUTPUT_SHADER ${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.spv)
@@ -16,7 +21,7 @@ function(add_shader_library TARGET)
                 ${GLSLC_EXECUTABLE}
                 $<$<BOOL:${ARG_ENV}>:--target-env=${ARG_ENV}>
                 $<$<BOOL:${ARG_FORMAT}>:-mfmt=${ARG_FORMAT}>
-                $<IF:$<BOOL:${ARG_GLSL}>,-xglsl,$<$<BOOL:${ARG_HLSL}>:-xhlsl>>
+                $<$<BOOL:${GLSLC_LANG}>:-x${GLSLC_LANG}>
                 -o ${OUTPUT_SHADER}
                 ${SHADER}
         )
