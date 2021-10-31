@@ -24,6 +24,7 @@ class App {
         criarLayoutDaPipeline();
         criarModuloDoShader();
         criarPipeline();
+        criarPoolDeComandos();
     }
 
     void criarInstancia() {
@@ -104,14 +105,13 @@ class App {
     }
 
     void criarDispositivoLogicoEFilas() {
-        uint32_t familiaComputacao =
-            buscarFamiliaDeFilas(dispositivoFisico_,
-                                 vk::QueueFlagBits::eCompute)
-                .value();
+        familiaComputacao_ = buscarFamiliaDeFilas(dispositivoFisico_,
+                                                  vk::QueueFlagBits::eCompute)
+                                 .value();
 
         float prioridadeComputacao = 1.0f;
         vk::DeviceQueueCreateInfo infoComputacao;
-        infoComputacao.queueFamilyIndex = familiaComputacao;
+        infoComputacao.queueFamilyIndex = familiaComputacao_;
         infoComputacao.queueCount = 1;
         infoComputacao.pQueuePriorities = &prioridadeComputacao;
 
@@ -128,7 +128,7 @@ class App {
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
-        filaComputacao_ = dispositivo_.getQueue(familiaComputacao, 0);
+        filaComputacao_ = dispositivo_.getQueue(familiaComputacao_, 0);
     }
 
     static std::optional<uint32_t> buscarFamiliaDeFilas(
@@ -214,7 +214,16 @@ class App {
         pipeline_ = dispositivo_.createComputePipeline({}, info);
     }
 
+    void criarPoolDeComandos() {
+        vk::CommandPoolCreateInfo info;
+        // info.flags = {};
+        info.queueFamilyIndex = familiaComputacao_;
+
+        poolDeComandos_ = dispositivo_.createCommandPool(info);
+    }
+
     void destruir() {
+        dispositivo_.destroyCommandPool(poolDeComandos_);
         dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(moduloDoShader_);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
@@ -236,7 +245,9 @@ class App {
     vk::PhysicalDevice dispositivoFisico_;
     vk::Device dispositivo_;
 
+    uint32_t familiaComputacao_;
     vk::Queue filaComputacao_;
+    vk::CommandPool poolDeComandos_;
 
     vk::DescriptorSetLayout layoutDoSetDeEntrada_;
     vk::PipelineLayout layoutDaPipeline_;
@@ -244,6 +255,10 @@ class App {
     const std::string kCamingoDoCodigoDoShader = "shaders/filtro.comp.spv";
     vk::ShaderModule moduloDoShader_;
     vk::Pipeline pipeline_;
+
+    vk::Buffer buffer_;
+    vk::BufferView visaoBuffer_;
+    vk::DeviceMemory memoriaBuffer_;
 };
 }  // namespace smv
 
