@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
@@ -18,6 +20,9 @@ class App {
         criarInstancia();
         escolherDispositivoFisico();
         criarDispositivoLogicoEFilas();
+        criarLayoutDosSetDeDescritores();
+        criarLayoutDaPipeline();
+        criarModuloDoShader();
     }
 
     void criarInstancia() {
@@ -142,7 +147,58 @@ class App {
         return std::distance(familias.begin(), familia);
     }
 
+    void criarLayoutDosSetDeDescritores() {
+        vk::DescriptorSetLayoutBinding associacaoBuffer;
+        associacaoBuffer.binding = 0;
+        associacaoBuffer.descriptorType = vk::DescriptorType::eStorageBuffer;
+        associacaoBuffer.descriptorCount = 1;
+        associacaoBuffer.stageFlags = vk::ShaderStageFlagBits::eCompute;
+        // associacaoBuffer.pImmutableSamplers = nullptr;
+
+        vk::DescriptorSetLayoutCreateInfo info;
+        // info.flags = {};
+        info.bindingCount = 1;
+        info.pBindings = &associacaoBuffer;
+
+        layoutDoSetDeEntrada_ = dispositivo_.createDescriptorSetLayout(info);
+    }
+
+    void criarLayoutDaPipeline() {
+        vk::PipelineLayoutCreateInfo info;
+        // info.flags = {}
+        info.setLayoutCount = 1;
+        info.pSetLayouts = &layoutDoSetDeEntrada_;
+        // info.pushConstantRangeCount = 0;
+        // info.pPushConstantRanges = nullptr;
+
+        layoutDaPipeline_ = dispositivo_.createPipelineLayout(info);
+    }
+
+    void criarModuloDoShader() {
+        std::ifstream arquivoDoShader(kCamingoDoCodigoDoShader,
+                                      std::ios::binary);
+
+        if (!arquivoDoShader.is_open()) {
+            throw std::runtime_error("Não foi possível abrir o arquivo '" +
+                                     kCamingoDoCodigoDoShader + "'!");
+        }
+
+        std::vector<char> codigoDoShader(
+            (std::istreambuf_iterator<char>(arquivoDoShader)),
+            (std::istreambuf_iterator<char>()));
+
+        vk::ShaderModuleCreateInfo info;
+        // info.flags = {}
+        info.codeSize = codigoDoShader.size();
+        info.pCode = reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+
+        moduloDoShader_ = dispositivo_.createShaderModule(info);
+    }
+
     void destruir() {
+        dispositivo_.destroyShaderModule(moduloDoShader_);
+        dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
+        dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeEntrada_);
         dispositivo_.destroy();
         instancia_.destroy();
     }
@@ -161,6 +217,12 @@ class App {
     vk::Device dispositivo_;
 
     vk::Queue filaComputacao_;
+
+    vk::DescriptorSetLayout layoutDoSetDeEntrada_;
+    vk::PipelineLayout layoutDaPipeline_;
+
+    const std::string kCamingoDoCodigoDoShader = "shaders/filtro.comp.spv";
+    vk::ShaderModule moduloDoShader_;
 };
 }  // namespace smv
 
