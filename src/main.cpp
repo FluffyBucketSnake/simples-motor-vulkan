@@ -23,6 +23,7 @@ class App {
         criarLayoutDosSetDeDescritores();
         criarLayoutDaPipeline();
         criarModuloDoShader();
+        criarPipeline();
     }
 
     void criarInstancia() {
@@ -195,7 +196,26 @@ class App {
         moduloDoShader_ = dispositivo_.createShaderModule(info);
     }
 
+    void criarPipeline() {
+        vk::PipelineShaderStageCreateInfo infoShader;
+        // infoShader.flags = {};
+        infoShader.stage = vk::ShaderStageFlagBits::eCompute;
+        infoShader.module = moduloDoShader_;
+        infoShader.pName = "main";
+        // infoShader.pSpecializationInfo = nullptr;
+
+        vk::ComputePipelineCreateInfo info;
+        // info.flags = {};
+        info.stage = infoShader;
+        info.layout = layoutDaPipeline_;
+        // info.basePipelineHandle = nullptr;
+        // info.basePipelineIndex = -1;
+
+        pipeline_ = dispositivo_.createComputePipeline({}, info);
+    }
+
     void destruir() {
+        dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(moduloDoShader_);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
         dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeEntrada_);
@@ -223,6 +243,7 @@ class App {
 
     const std::string kCamingoDoCodigoDoShader = "shaders/filtro.comp.spv";
     vk::ShaderModule moduloDoShader_;
+    vk::Pipeline pipeline_;
 };
 }  // namespace smv
 
