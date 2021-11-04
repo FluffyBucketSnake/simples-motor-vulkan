@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -26,6 +27,7 @@ class App {
         criarPipeline();
         criarPoolDeComandos();
         criarBuffer();
+        criarPoolDeDescritores();
     }
 
     void criarInstancia() {
@@ -272,7 +274,21 @@ class App {
             "Não foi encontrada um tipo de memória adequado.");
     }
 
+    void criarPoolDeDescritores() {
+        const auto descritoresTotais = std::array{
+            vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, 1}};
+
+        vk::DescriptorPoolCreateInfo info;
+        // info.flags = {}
+        info.maxSets = 1;
+        info.poolSizeCount = descritoresTotais.size();
+        info.pPoolSizes = descritoresTotais.data();
+
+        poolDeDescritores_ = dispositivo_.createDescriptorPool(info);
+    }
+
     void destruir() {
+        dispositivo_.destroyDescriptorPool(poolDeDescritores_);
         dispositivo_.destroyBuffer(buffer_);
         dispositivo_.freeMemory(memoriaBuffer_);
         dispositivo_.destroyCommandPool(poolDeComandos_);
@@ -313,6 +329,8 @@ class App {
     const size_t kTamanhoDoBuffer = sizeof(int) * kNumDeItens;
     vk::Buffer buffer_;
     vk::DeviceMemory memoriaBuffer_;
+
+    vk::DescriptorPool poolDeDescritores_;
 };
 }  // namespace smv
 
