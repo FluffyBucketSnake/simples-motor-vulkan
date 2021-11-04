@@ -28,6 +28,8 @@ class App {
         criarPoolDeComandos();
         criarBuffer();
         criarPoolDeDescritores();
+        alocarSetDeDescritores();
+        atualizarSetDeDescritores();
     }
 
     void criarInstancia() {
@@ -288,6 +290,36 @@ class App {
         poolDeDescritores_ = dispositivo_.createDescriptorPool(info);
     }
 
+    void alocarSetDeDescritores() {
+        const auto layouts = std::array{layoutDoSetDeEntrada_};
+
+        vk::DescriptorSetAllocateInfo info;
+        info.descriptorPool = poolDeDescritores_;
+        info.descriptorSetCount = layouts.size();
+        info.pSetLayouts = layouts.data();
+
+        setDeEntrada_ = dispositivo_.allocateDescriptorSets(info)[0];
+    }
+
+    void atualizarSetDeDescritores() {
+        vk::DescriptorBufferInfo infoBuffer;
+        infoBuffer.buffer = buffer_;
+        infoBuffer.offset = 0;
+        infoBuffer.range = VK_WHOLE_SIZE;
+
+        vk::WriteDescriptorSet writeBuffer;
+        writeBuffer.dstSet = setDeEntrada_;
+        writeBuffer.dstBinding = 0;
+        // writeBuffer.dstArrayElement = 0;
+        writeBuffer.descriptorCount = 1;
+        writeBuffer.descriptorType = vk::DescriptorType::eStorageBuffer;
+        // writeBuffer.pImageInfo = nullptr;
+        writeBuffer.pBufferInfo = &infoBuffer;
+        // writeBuffer.pTexelBufferView = nullptr;
+
+        dispositivo_.updateDescriptorSets({writeBuffer}, {});
+    }
+
     void destruir() {
         dispositivo_.destroyDescriptorPool(poolDeDescritores_);
         dispositivo_.destroyBuffer(buffer_);
@@ -332,6 +364,7 @@ class App {
     vk::DeviceMemory memoriaBuffer_;
 
     vk::DescriptorPool poolDeDescritores_;
+    vk::DescriptorSet setDeEntrada_;
 };
 }  // namespace smv
 
