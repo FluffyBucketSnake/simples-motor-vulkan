@@ -30,6 +30,7 @@ class App {
         criarPoolDeDescritores();
         alocarSetDeDescritores();
         atualizarSetDeDescritores();
+        alocarBufferDeComandos();
     }
 
     void criarInstancia() {
@@ -318,6 +319,15 @@ class App {
         // writeBuffer.pTexelBufferView = nullptr;
 
         dispositivo_.updateDescriptorSets({writeBuffer}, {});
+    }
+
+    void alocarBufferDeComandos() {
+        vk::CommandBufferAllocateInfo info;
+        info.commandPool = poolDeComandos_;
+        // info.level = vk::CommandBufferLevel::ePrimary;
+        info.commandBufferCount = 1;
+
+        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
     }
 
     void destruir() {
