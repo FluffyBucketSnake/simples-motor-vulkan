@@ -247,6 +247,7 @@ class App {
                                     vk::MemoryPropertyFlagBits::eHostCoherent);
 
         memoriaBuffer_ = dispositivo_.allocateMemory(infoAlloc);
+        dispositivo_.bindBufferMemory(buffer_, memoriaBuffer_, 0);
 
         std::vector<int> dados(kNumDeItens, 4);
         void* localDaMemoria =
