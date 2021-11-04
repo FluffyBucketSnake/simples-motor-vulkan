@@ -25,6 +25,7 @@ class App {
         criarModuloDoShader();
         criarPipeline();
         criarPoolDeComandos();
+        criarBuffer();
     }
 
     void criarInstancia() {
@@ -222,7 +223,58 @@ class App {
         poolDeComandos_ = dispositivo_.createCommandPool(info);
     }
 
+    void criarBuffer() {
+        vk::BufferCreateInfo infoBuffer;
+        // infoBuffer.flags = {};
+        infoBuffer.size = kTamanhoDoBuffer;
+        infoBuffer.usage = vk::BufferUsageFlagBits::eStorageBuffer;
+        infoBuffer.sharingMode = vk::SharingMode::eExclusive;
+        // infoBuffer.queueFamilyIndexCount = 0;
+        // infoBuffer.pQueueFamilyIndices = nullptr;
+
+        buffer_ = dispositivo_.createBuffer(infoBuffer);
+
+        auto requisitosDeMemoria =
+            dispositivo_.getBufferMemoryRequirements(buffer_);
+
+        vk::MemoryAllocateInfo infoAlloc;
+        infoAlloc.allocationSize = requisitosDeMemoria.size;
+        infoAlloc.memoryTypeIndex =
+            buscarTipoDeMemoria(requisitosDeMemoria.memoryTypeBits,
+                                vk::MemoryPropertyFlagBits::eHostVisible |
+                                    vk::MemoryPropertyFlagBits::eHostCoherent);
+
+        memoriaBuffer_ = dispositivo_.allocateMemory(infoAlloc);
+
+        std::vector<int> dados(kNumDeItens, 4);
+        void* localDaMemoria =
+            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
+        std::memcpy(localDaMemoria, dados.data(), dados.size());
+        dispositivo_.unmapMemory(memoriaBuffer_);
+    }
+
+    uint32_t buscarTipoDeMemoria(uint32_t filtro,
+                                 vk::MemoryPropertyFlags propriedades) {
+        auto tiposDeMemorias = dispositivoFisico_.getMemoryProperties();
+        for (uint32_t i = 0; i < tiposDeMemorias.memoryTypeCount; i++) {
+            const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
+
+            bool passaPeloFiltro = (1u << i) & filtro;
+            bool possuiAsPropriedades =
+                (tipoDeMemoria.propertyFlags & propriedades) == propriedades;
+
+            if (passaPeloFiltro && possuiAsPropriedades) {
+                return i;
+            }
+        }
+
+        throw std::runtime_error(
+            "Não foi encontrada um tipo de memória adequado.");
+    }
+
     void destruir() {
+        dispositivo_.destroyBuffer(buffer_);
+        dispositivo_.freeMemory(memoriaBuffer_);
         dispositivo_.destroyCommandPool(poolDeComandos_);
         dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(moduloDoShader_);
@@ -256,8 +308,10 @@ class App {
     vk::ShaderModule moduloDoShader_;
     vk::Pipeline pipeline_;
 
+    const size_t kNumDeInvocacoes = 1024;
+    const size_t kNumDeItens = 64 * kNumDeInvocacoes;
+    const size_t kTamanhoDoBuffer = sizeof(int) * kNumDeItens;
     vk::Buffer buffer_;
-    vk::BufferView visaoBuffer_;
     vk::DeviceMemory memoriaBuffer_;
 };
 }  // namespace smv
