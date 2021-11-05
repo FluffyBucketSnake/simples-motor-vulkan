@@ -307,7 +307,7 @@ class App {
         vk::DescriptorBufferInfo infoBuffer;
         infoBuffer.buffer = buffer_;
         infoBuffer.offset = 0;
-        infoBuffer.range = VK_WHOLE_SIZE;
+        infoBuffer.range = kTamanhoDoBuffer;
 
         vk::WriteDescriptorSet writeBuffer;
         writeBuffer.dstSet = setDeEntrada_;
