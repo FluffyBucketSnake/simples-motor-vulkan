@@ -255,7 +255,7 @@ class App {
         std::vector<int> dados(kNumDeItens, 4);
         void* localDaMemoria =
             dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
-        std::memcpy(localDaMemoria, dados.data(), dados.size());
+        std::memcpy(localDaMemoria, dados.data(), kTamanhoDoBuffer);
         dispositivo_.unmapMemory(memoriaBuffer_);
     }
 
