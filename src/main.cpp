@@ -348,7 +348,7 @@ class App {
         bufferDeComandos_.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
                                              layoutDaPipeline_, 0,
                                              {setDeEntrada_}, {});
-        bufferDeComandos_.dispatch(static_cast<uint32_t>(kNumDeInvocacoes), 1,
+        bufferDeComandos_.dispatch(static_cast<uint32_t>(kNumDeGruposDeTrabalho), 1,
                                    1);
         bufferDeComandos_.end();
     }
@@ -415,8 +415,8 @@ class App {
     vk::ShaderModule moduloDoShader_;
     vk::Pipeline pipeline_;
 
-    const size_t kNumDeInvocacoes = 1024;
-    const size_t kNumDeItens = 64 * kNumDeInvocacoes;
+    const size_t kNumDeGruposDeTrabalho = 1024;
+    const size_t kNumDeItens = 64 * kNumDeGruposDeTrabalho;
     const size_t kTamanhoDoBuffer = sizeof(int) * kNumDeItens;
     vk::Buffer buffer_;
     vk::DeviceMemory memoriaBuffer_;
