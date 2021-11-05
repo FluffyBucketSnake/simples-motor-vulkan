@@ -223,7 +223,7 @@ class App {
 
     void criarPoolDeComandos() {
         vk::CommandPoolCreateInfo info;
-        // info.flags = {};
+        info.flags = vk::CommandPoolCreateFlagBits::eTransient;
         info.queueFamilyIndex = familiaComputacao_;
 
         poolDeComandos_ = dispositivo_.createCommandPool(info);
