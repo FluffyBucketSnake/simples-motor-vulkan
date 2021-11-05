@@ -13,6 +13,7 @@ class App {
   public:
     void rodar() {
         iniciar();
+        executar();
         destruir();
     }
 
@@ -330,6 +331,53 @@ class App {
         bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
     }
 
+    void executar() {
+        gravarBufferDeComando();
+        executarComandos();
+        confirmarResultados();
+    }
+
+    void gravarBufferDeComando() {
+        vk::CommandBufferBeginInfo info;
+        info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+        info.pInheritanceInfo = nullptr;
+
+        bufferDeComandos_.begin(info);
+        bufferDeComandos_.bindPipeline(vk::PipelineBindPoint::eCompute,
+                                       pipeline_);
+        bufferDeComandos_.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
+                                             layoutDaPipeline_, 0,
+                                             {setDeEntrada_}, {});
+        bufferDeComandos_.dispatch(static_cast<uint32_t>(kNumDeInvocacoes), 1,
+                                   1);
+        bufferDeComandos_.end();
+    }
+
+    void executarComandos() {
+        vk::SubmitInfo info;
+        // info.waitSemaphoreCount = 0;
+        // info.pWaitSemaphores = nullptr;
+        // info.pWaitDstStageMask = nullptr;
+        info.commandBufferCount = 1;
+        info.pCommandBuffers = &bufferDeComandos_;
+        // info.signalSemaphoreCount = 0;
+        // info.pSignalSemaphores = nullptr;
+
+        filaComputacao_.submit({info}, nullptr);
+        filaComputacao_.waitIdle();
+    }
+
+    void confirmarResultados() {
+        void* localDaMemoria =
+            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
+        auto resultados = reinterpret_cast<const int*>(localDaMemoria);
+        for (size_t i = 0; i < kNumDeItens; i++) {
+            assert(resultados[i] == 8);
+        }
+        std::cout << std::endl;
+        dispositivo_.unmapMemory(memoriaBuffer_);
+    }
+
     void destruir() {
         dispositivo_.destroyDescriptorPool(poolDeDescritores_);
         dispositivo_.destroyBuffer(buffer_);
@@ -375,6 +423,8 @@ class App {
 
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeEntrada_;
+
+    vk::CommandBuffer bufferDeComandos_;
 };
 }  // namespace smv
 
