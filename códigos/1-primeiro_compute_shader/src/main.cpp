@@ -13,6 +13,7 @@ class App {
   public:
     void rodar() {
         iniciar();
+        carregarRecursos();
         executar();
         destruir();
     }
@@ -27,11 +28,9 @@ class App {
         criarModuloDoShader();
         criarPipeline();
         criarPoolDeComandos();
-        criarBuffer();
+        alocarBufferDeComandos();
         criarPoolDeDescritores();
         alocarSetDeDescritores();
-        atualizarSetDeDescritores();
-        alocarBufferDeComandos();
     }
 
     void criarInstancia() {
@@ -229,54 +228,13 @@ class App {
         poolDeComandos_ = dispositivo_.createCommandPool(info);
     }
 
-    void criarBuffer() {
-        vk::BufferCreateInfo infoBuffer;
-        // infoBuffer.flags = {};
-        infoBuffer.size = kTamanhoDoBuffer;
-        infoBuffer.usage = vk::BufferUsageFlagBits::eStorageBuffer;
-        infoBuffer.sharingMode = vk::SharingMode::eExclusive;
-        // infoBuffer.queueFamilyIndexCount = 0;
-        // infoBuffer.pQueueFamilyIndices = nullptr;
+    void alocarBufferDeComandos() {
+        vk::CommandBufferAllocateInfo info;
+        info.commandPool = poolDeComandos_;
+        // info.level = vk::CommandBufferLevel::ePrimary;
+        info.commandBufferCount = 1;
 
-        buffer_ = dispositivo_.createBuffer(infoBuffer);
-
-        auto requisitosDeMemoria =
-            dispositivo_.getBufferMemoryRequirements(buffer_);
-
-        vk::MemoryAllocateInfo infoAlloc;
-        infoAlloc.allocationSize = requisitosDeMemoria.size;
-        infoAlloc.memoryTypeIndex =
-            buscarTipoDeMemoria(requisitosDeMemoria.memoryTypeBits,
-                                vk::MemoryPropertyFlagBits::eHostVisible |
-                                    vk::MemoryPropertyFlagBits::eHostCoherent);
-
-        memoriaBuffer_ = dispositivo_.allocateMemory(infoAlloc);
-        dispositivo_.bindBufferMemory(buffer_, memoriaBuffer_, 0);
-
-        std::vector<int> dados(kNumDeItens, 4);
-        void* localDaMemoria =
-            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
-        std::memcpy(localDaMemoria, dados.data(), kTamanhoDoBuffer);
-        dispositivo_.unmapMemory(memoriaBuffer_);
-    }
-
-    uint32_t buscarTipoDeMemoria(uint32_t filtro,
-                                 vk::MemoryPropertyFlags propriedades) {
-        auto tiposDeMemorias = dispositivoFisico_.getMemoryProperties();
-        for (uint32_t i = 0; i < tiposDeMemorias.memoryTypeCount; i++) {
-            const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
-
-            bool passaPeloFiltro = (1u << i) & filtro;
-            bool possuiAsPropriedades =
-                (tipoDeMemoria.propertyFlags & propriedades) == propriedades;
-
-            if (passaPeloFiltro && possuiAsPropriedades) {
-                return i;
-            }
-        }
-
-        throw std::runtime_error(
-            "Não foi encontrada um tipo de memória adequado.");
+        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
     }
 
     void criarPoolDeDescritores() {
@@ -303,6 +261,76 @@ class App {
         setDeEntrada_ = dispositivo_.allocateDescriptorSets(info)[0];
     }
 
+    void carregarRecursos() {
+        criarBufferDeEntrada();
+        atualizarSetDeDescritores();
+    }
+
+    void criarBufferDeEntrada() {
+        criarBuffer(vk::BufferUsageFlagBits::eStorageBuffer, kTamanhoDoBuffer,
+                    vk::MemoryPropertyFlagBits::eHostVisible |
+                        vk::MemoryPropertyFlagBits::eHostCoherent,
+                    buffer_, memoriaBuffer_);
+
+        std::vector<int> dados(kNumDeItens, 4);
+        void* localDaMemoria =
+            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
+        std::memcpy(localDaMemoria, dados.data(), kTamanhoDoBuffer);
+        dispositivo_.unmapMemory(memoriaBuffer_);
+    }
+
+    void criarBuffer(vk::BufferUsageFlags usos,
+                     size_t tamanho,
+                     vk::MemoryPropertyFlags propriedades,
+                     vk::Buffer& buffer,
+                     vk::DeviceMemory& memoria) {
+        vk::BufferCreateInfo infoBuffer;
+        // infoBuffer.flags = {};
+        infoBuffer.size = tamanho;
+        infoBuffer.usage = usos;
+        infoBuffer.sharingMode = vk::SharingMode::eExclusive;
+        // infoBuffer.queueFamilyIndexCount = 0;
+        // infoBuffer.pQueueFamilyIndices = nullptr;
+
+        buffer = dispositivo_.createBuffer(infoBuffer);
+
+        auto requisitosDeMemoria =
+            dispositivo_.getBufferMemoryRequirements(buffer);
+        auto tipoDeMemoria = buscarTipoDeMemoria(
+            requisitosDeMemoria.memoryTypeBits, propriedades);
+
+        memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
+        
+        dispositivo_.bindBufferMemory(buffer, memoria, 0);
+    }
+
+    vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
+        vk::MemoryAllocateInfo infoAlloc;
+        infoAlloc.allocationSize = tamanho;
+        infoAlloc.memoryTypeIndex = tipoDeMemoria;
+
+        return dispositivo_.allocateMemory(infoAlloc);
+    }
+
+    uint32_t buscarTipoDeMemoria(uint32_t filtro,
+                                 vk::MemoryPropertyFlags propriedades) {
+        auto tiposDeMemorias = dispositivoFisico_.getMemoryProperties();
+        for (uint32_t i = 0; i < tiposDeMemorias.memoryTypeCount; i++) {
+            const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
+
+            bool passaPeloFiltro = (1u << i) & filtro;
+            bool possuiAsPropriedades =
+                (tipoDeMemoria.propertyFlags & propriedades) == propriedades;
+
+            if (passaPeloFiltro && possuiAsPropriedades) {
+                return i;
+            }
+        }
+
+        throw std::runtime_error(
+            "Não foi encontrada um tipo de memória adequado.");
+    }
+
     void atualizarSetDeDescritores() {
         vk::DescriptorBufferInfo infoBuffer;
         infoBuffer.buffer = buffer_;
@@ -322,15 +350,6 @@ class App {
         dispositivo_.updateDescriptorSets({writeBuffer}, {});
     }
 
-    void alocarBufferDeComandos() {
-        vk::CommandBufferAllocateInfo info;
-        info.commandPool = poolDeComandos_;
-        // info.level = vk::CommandBufferLevel::ePrimary;
-        info.commandBufferCount = 1;
-
-        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
-    }
-
     void executar() {
         gravarBufferDeComando();
         executarComandos();
@@ -348,8 +367,8 @@ class App {
         bufferDeComandos_.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
                                              layoutDaPipeline_, 0,
                                              {setDeEntrada_}, {});
-        bufferDeComandos_.dispatch(static_cast<uint32_t>(kNumDeGruposDeTrabalho), 1,
-                                   1);
+        bufferDeComandos_.dispatch(
+            static_cast<uint32_t>(kNumDeGruposDeTrabalho), 1, 1);
         bufferDeComandos_.end();
     }
 
@@ -407,6 +426,7 @@ class App {
     uint32_t familiaComputacao_;
     vk::Queue filaComputacao_;
     vk::CommandPool poolDeComandos_;
+    vk::CommandBuffer bufferDeComandos_;
 
     vk::DescriptorSetLayout layoutDoSetDeEntrada_;
     vk::PipelineLayout layoutDaPipeline_;
@@ -415,16 +435,14 @@ class App {
     vk::ShaderModule moduloDoShader_;
     vk::Pipeline pipeline_;
 
+    vk::DescriptorPool poolDeDescritores_;
+    vk::DescriptorSet setDeEntrada_;
+
     const size_t kNumDeGruposDeTrabalho = 1024;
     const size_t kNumDeItens = 64 * kNumDeGruposDeTrabalho;
     const size_t kTamanhoDoBuffer = sizeof(int) * kNumDeItens;
     vk::Buffer buffer_;
     vk::DeviceMemory memoriaBuffer_;
-
-    vk::DescriptorPool poolDeDescritores_;
-    vk::DescriptorSet setDeEntrada_;
-
-    vk::CommandBuffer bufferDeComandos_;
 };
 }  // namespace smv
 
