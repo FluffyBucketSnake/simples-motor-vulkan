@@ -19,7 +19,8 @@ find_package(Vulkan REQUIRED)
 find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/libs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src bin)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/shaders bin/shaders)
 
-add_dependencies(motor shaders)
+add_dependencies(motor shaders stb_image)
