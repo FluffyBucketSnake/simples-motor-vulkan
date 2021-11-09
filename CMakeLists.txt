@@ -23,4 +23,4 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/libs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src bin)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/shaders bin/shaders)
 
-add_dependencies(motor shaders stb_image)
+add_dependencies(motor shaders)

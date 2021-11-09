@@ -14,3 +14,4 @@ target_compile_options(motor PRIVATE
 # Ligar o alvo com as bibliotecas necessárias
 target_link_libraries(motor PRIVATE vulkan)
 target_link_libraries(motor PRIVATE glfw)
+target_link_libraries(motor PRIVATE stb)
