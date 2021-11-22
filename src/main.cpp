@@ -445,11 +445,9 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeEntrada_;
 
-    const size_t kNumDeGruposDeTrabalho = 1024;
-    const size_t kNumDeItens = 64 * kNumDeGruposDeTrabalho;
-    const size_t kTamanhoDoBuffer = sizeof(int) * kNumDeItens;
-    vk::Buffer buffer_;
-    vk::DeviceMemory memoriaBuffer_;
+    const std::string kCaminhoDaImagem = "res/statue-g162b3a07b_640.jpg";
+    vk::Image imagem;
+    vk::DeviceMemory memoriaImagem;
 };
 }  // namespace smv
 
