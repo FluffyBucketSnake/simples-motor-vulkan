@@ -269,21 +269,45 @@ class App {
     }
 
     void carregarRecursos() {
-        criarBufferDeEntrada();
+        carregarImagem(kCaminhoDaImagem, imagem, memoriaImagem);
         atualizarSetDeDescritores();
     }
 
-    void criarBufferDeEntrada() {
-        criarBuffer(vk::BufferUsageFlagBits::eStorageBuffer, kTamanhoDoBuffer,
-                    vk::MemoryPropertyFlagBits::eHostVisible |
-                        vk::MemoryPropertyFlagBits::eHostCoherent,
-                    buffer_, memoriaBuffer_);
+    void carregarImagem(const std::string& caminho,
+                        vk::Image& imagem,
+                        vk::DeviceMemory memoria) {
+        int largura, altura, _canais;
+        stbi_uc* pixels = stbi_load(caminho.c_str(), &largura, &altura,
+                                    &_canais, STBI_rgb_alpha);
+        vk::Extent3D dimensoes = {largura, altura, 1};
 
-        std::vector<int> dados(kNumDeItens, 4);
-        void* localDaMemoria =
-            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
-        std::memcpy(localDaMemoria, dados.data(), kTamanhoDoBuffer);
-        dispositivo_.unmapMemory(memoriaBuffer_);
+        criarImagem(vk::Format::eR8G8B8A8Srgb, dimensoes,
+                    vk::ImageUsageFlagBits::eTransferDst |
+                        vk::ImageUsageFlagBits::eStorage,
+                    imagem, memoria);
+    }
+
+    void criarImagem(vk::Format formato,
+                     vk::Extent3D dimensoes,
+                     vk::ImageUsageFlags usos,
+                     vk::Image& imagem,
+                     vk::DeviceMemory& memoria) {
+        vk::ImageCreateInfo info;
+        // info.flags = {};
+        info.imageType = vk::ImageType::e2D;
+        info.format = formato;
+        info.extent = dimensoes;
+        info.mipLevels = 1;
+        info.arrayLayers = 1;
+        info.samples = vk::SampleCountFlagBits::e1;
+        info.tiling = vk::ImageTiling::eOptimal;
+        info.usage = usos;
+        info.sharingMode = vk::SharingMode::eExclusive;
+        // info.queueFamilyIndexCount = 0;
+        // info.pQueueFamilyIndices = nullptr;
+        info.initialLayout = vk::ImageLayout::eUndefined;
+
+        imagem = dispositivo_.createImage(info);
     }
 
     void criarBuffer(vk::BufferUsageFlags usos,
@@ -307,7 +331,7 @@ class App {
             requisitosDeMemoria.memoryTypeBits, propriedades);
 
         memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
-        
+
         dispositivo_.bindBufferMemory(buffer, memoria, 0);
     }
 
