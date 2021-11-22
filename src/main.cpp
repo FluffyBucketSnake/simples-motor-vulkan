@@ -269,7 +269,7 @@ class App {
     }
 
     void carregarRecursos() {
-        carregarImagem(kCaminhoDaImagem, imagem, memoriaImagem);
+        carregarImagem(kCaminhoDaImagem, imagem_, memoriaImagem_);
         atualizarSetDeDescritores();
     }
 
@@ -470,8 +470,8 @@ class App {
     vk::DescriptorSet setDeEntrada_;
 
     const std::string kCaminhoDaImagem = "res/statue-g162b3a07b_640.jpg";
-    vk::Image imagem;
-    vk::DeviceMemory memoriaImagem;
+    vk::Image imagem_;
+    vk::DeviceMemory memoriaImagem_;
 };
 }  // namespace smv
 
