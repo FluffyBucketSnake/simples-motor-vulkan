@@ -162,17 +162,17 @@ class App {
     }
 
     void criarLayoutDosSetDeDescritores() {
-        vk::DescriptorSetLayoutBinding associacaoBuffer;
-        associacaoBuffer.binding = 0;
-        associacaoBuffer.descriptorType = vk::DescriptorType::eStorageBuffer;
-        associacaoBuffer.descriptorCount = 1;
-        associacaoBuffer.stageFlags = vk::ShaderStageFlagBits::eCompute;
-        // associacaoBuffer.pImmutableSamplers = nullptr;
+        vk::DescriptorSetLayoutBinding associacaoImagem;
+        associacaoImagem.binding = 0;
+        associacaoImagem.descriptorType = vk::DescriptorType::eStorageImage;
+        associacaoImagem.descriptorCount = 1;
+        associacaoImagem.stageFlags = vk::ShaderStageFlagBits::eCompute;
+        // associacaoImagem.pImmutableSamplers = nullptr;
 
         vk::DescriptorSetLayoutCreateInfo info;
         // info.flags = {};
         info.bindingCount = 1;
-        info.pBindings = &associacaoBuffer;
+        info.pBindings = &associacaoImagem;
 
         layoutDoSetDeEntrada_ = dispositivo_.createDescriptorSetLayout(info);
     }
