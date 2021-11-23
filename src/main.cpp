@@ -531,8 +531,8 @@ class App {
 
     void destruir() {
         dispositivo_.destroyDescriptorPool(poolDeDescritores_);
-        dispositivo_.destroyBuffer(buffer_);
-        dispositivo_.freeMemory(memoriaBuffer_);
+        dispositivo_.destroyImage(imagem_);
+        dispositivo_.freeMemory(memoriaImagem_);
         dispositivo_.destroyCommandPool(poolDeComandos_);
         dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(moduloDoShader_);
