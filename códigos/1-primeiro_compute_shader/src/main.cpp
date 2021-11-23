@@ -28,7 +28,6 @@ class App {
         criarModuloDoShader();
         criarPipeline();
         criarPoolDeComandos();
-        alocarBufferDeComandos();
         criarPoolDeDescritores();
         alocarSetDeDescritores();
     }
@@ -228,15 +227,6 @@ class App {
         poolDeComandos_ = dispositivo_.createCommandPool(info);
     }
 
-    void alocarBufferDeComandos() {
-        vk::CommandBufferAllocateInfo info;
-        info.commandPool = poolDeComandos_;
-        // info.level = vk::CommandBufferLevel::ePrimary;
-        info.commandBufferCount = 1;
-
-        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
-    }
-
     void criarPoolDeDescritores() {
         const auto descritoresTotais = std::array{
             vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, 1}};
@@ -351,9 +341,19 @@ class App {
     }
 
     void executar() {
+        alocarBufferDeComandos();
         gravarBufferDeComando();
         executarComandos();
         confirmarResultados();
+    }
+
+    void alocarBufferDeComandos() {
+        vk::CommandBufferAllocateInfo info;
+        info.commandPool = poolDeComandos_;
+        // info.level = vk::CommandBufferLevel::ePrimary;
+        info.commandBufferCount = 1;
+
+        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
     }
 
     void gravarBufferDeComando() {

@@ -35,7 +35,6 @@ class App {
         criarModuloDoShader();
         criarPipeline();
         criarPoolDeComandos();
-        alocarBufferDeComandos();
         criarPoolDeDescritores();
         alocarSetDeDescritores();
     }
@@ -233,15 +232,6 @@ class App {
         info.queueFamilyIndex = familiaComputacao_;
 
         poolDeComandos_ = dispositivo_.createCommandPool(info);
-    }
-
-    void alocarBufferDeComandos() {
-        vk::CommandBufferAllocateInfo info;
-        info.commandPool = poolDeComandos_;
-        // info.level = vk::CommandBufferLevel::ePrimary;
-        info.commandBufferCount = 1;
-
-        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
     }
 
     void criarPoolDeDescritores() {
@@ -460,12 +450,22 @@ class App {
     }
 
     void executar() {
-        gravarBufferDeComando();
+        alocarBufferDeComandos();
+        gravarBufferDeComandos();
         executarComandos();
         confirmarResultados();
     }
 
-    void gravarBufferDeComando() {
+    void alocarBufferDeComandos() {
+        vk::CommandBufferAllocateInfo info;
+        info.commandPool = poolDeComandos_;
+        // info.level = vk::CommandBufferLevel::ePrimary;
+        info.commandBufferCount = 1;
+
+        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
+    }
+
+    void gravarBufferDeComandos() {
         vk::CommandBufferBeginInfo info;
         info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
         info.pInheritanceInfo = nullptr;
