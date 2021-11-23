@@ -516,8 +516,7 @@ class App {
         bufferDeComandos_.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
                                              layoutDaPipeline_, 0,
                                              {setDeEntrada_}, {});
-        bufferDeComandos_.dispatch(
-            static_cast<uint32_t>(kNumDeGruposDeTrabalho), 1, 1);
+        bufferDeComandos_.dispatch(640 / 32, 480 / 32, 1);
         bufferDeComandos_.end();
     }
 
