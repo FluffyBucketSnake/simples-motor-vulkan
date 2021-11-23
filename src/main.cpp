@@ -236,7 +236,7 @@ class App {
 
     void criarPoolDeDescritores() {
         const auto descritoresTotais = std::array{
-            vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, 1}};
+            vk::DescriptorPoolSize{vk::DescriptorType::eStorageImage, 1}};
 
         vk::DescriptorPoolCreateInfo info;
         // info.flags = {}
@@ -471,22 +471,22 @@ class App {
     }
 
     void atualizarSetDeDescritores() {
-        vk::DescriptorBufferInfo infoBuffer;
-        infoBuffer.buffer = buffer_;
-        infoBuffer.offset = 0;
-        infoBuffer.range = kTamanhoDoBuffer;
+        vk::DescriptorImageInfo infoImagem;
+        // infoImagem.sampler = nullptr;
+        infoImagem.imageView = visaoImagem_;
+        infoImagem.imageLayout = vk::ImageLayout::eGeneral;
 
-        vk::WriteDescriptorSet writeBuffer;
-        writeBuffer.dstSet = setDeEntrada_;
-        writeBuffer.dstBinding = 0;
-        // writeBuffer.dstArrayElement = 0;
-        writeBuffer.descriptorCount = 1;
-        writeBuffer.descriptorType = vk::DescriptorType::eStorageBuffer;
-        // writeBuffer.pImageInfo = nullptr;
-        writeBuffer.pBufferInfo = &infoBuffer;
-        // writeBuffer.pTexelBufferView = nullptr;
+        vk::WriteDescriptorSet writeImagem;
+        writeImagem.dstSet = setDeEntrada_;
+        writeImagem.dstBinding = 0;
+        // writeImagem.dstArrayElement = 0;
+        writeImagem.descriptorCount = 1;
+        writeImagem.descriptorType = vk::DescriptorType::eStorageImage;
+        writeImagem.pImageInfo = &infoImagem;
+        // writeImagem.pBufferInfo = nullptr;
+        // writeImagem.pTexelBufferView = nullptr;
 
-        dispositivo_.updateDescriptorSets({writeBuffer}, {});
+        dispositivo_.updateDescriptorSets({writeImagem}, {});
     }
 
     void executar() {
@@ -590,6 +590,7 @@ class App {
     const std::string kCaminhoDaImagem = "res/statue-g162b3a07b_640.jpg";
     vk::Image imagem_;
     vk::DeviceMemory memoriaImagem_;
+    vk::ImageViw visaoImagem_;
 };
 }  // namespace smv
 
