@@ -404,6 +404,14 @@ class App {
         info.initialLayout = vk::ImageLayout::eUndefined;
 
         imagem = dispositivo_.createImage(info);
+
+        auto requisitosDeMemoria =
+            dispositivo_.getImageMemoryRequirements(imagem);
+        auto tipoDeMemoria =
+            buscarTipoDeMemoria(requisitosDeMemoria.memoryTypeBits,
+                                vk::MemoryPropertyFlagBits::eDeviceLocal);
+        memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
+        dispositivo_.bindImageMemory(imagem, memoria, 0);
     }
 
     vk::ImageView criarVisaoDeImagem(const vk::Image& imagem) {
