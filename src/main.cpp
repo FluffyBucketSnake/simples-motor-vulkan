@@ -273,8 +273,9 @@ class App {
         int largura, altura, _canais;
         stbi_uc* pixels = stbi_load(caminho.c_str(), &largura, &altura,
                                     &_canais, STBI_rgb_alpha);
-        dimensoes = {largura, altura, 1};
-        size_t tamanho = largura * altura * 4;
+        dimensoes = vk::Extent3D{static_cast<uint32_t>(largura),
+                                 static_cast<uint32_t>(altura), 1u};
+        size_t tamanho = dimensoes.width * dimensoes.height * 4u;
 
         criarImagem(vk::Format::eR8G8B8A8Srgb, dimensoes,
                     vk::ImageUsageFlagBits::eTransferDst |
@@ -297,7 +298,8 @@ class App {
 
         alterarLayout(imagem, vk::ImageLayout::eUndefined,
                       vk::ImageLayout::eTransferDstOptimal);
-        copiarDeBufferParaImagem(bufferDePreparo, imagem, largura, altura);
+        copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
+                                 dimensoes.height);
         alterarLayout(imagem, vk::ImageLayout::eTransferDstOptimal,
                       layoutFinal);
 
@@ -372,8 +374,8 @@ class App {
         regiao.imageSubresource.baseArrayLayer = 0;
         regiao.imageSubresource.layerCount = 1;
 
-        regiao.imageOffset = {0, 0, 0};
-        regiao.imageExtent = {largura, altura, 1};
+        regiao.imageOffset = vk::Offset3D{0, 0, 0};
+        regiao.imageExtent = vk::Extent3D{largura, altura, 1u};
 
         vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
         comando.copyBufferToImage(bufferFonte, imagemDestino,
