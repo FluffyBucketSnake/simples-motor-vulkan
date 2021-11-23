@@ -261,6 +261,7 @@ class App {
     void carregarRecursos() {
         carregarImagem(kCaminhoDaImagem, vk::ImageLayout::eGeneral, imagem_,
                        memoriaImagem_);
+        visaoImagem_ = criarVisaoDeImagem(imagem_);
         atualizarSetDeDescritores();
     }
 
@@ -399,6 +400,22 @@ class App {
         info.initialLayout = vk::ImageLayout::eUndefined;
 
         imagem = dispositivo_.createImage(info);
+    }
+
+    vk::ImageView criarVisaoDeImagem(const vk::Image& imagem) {
+        vk::ImageViewCreateInfo info;
+        // info.flags = {};
+        info.image = imagem;
+        info.viewType = vk::ImageViewType::e2D;
+        info.format = vk::Format::eR8G8B8A8Srgb;
+        // info.components = {};
+        info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        info.subresourceRange.baseMipLevel = 0;
+        info.subresourceRange.levelCount = 1;
+        info.subresourceRange.baseArrayLayer = 0;
+        info.subresourceRange.layerCount = 1;
+
+        return dispositivo_.createImageView(info);
     }
 
     void criarBuffer(vk::BufferUsageFlags usos,
