@@ -332,7 +332,7 @@ class App {
 
     vk::CommandBuffer iniciarComandoDeUsoUnico() {
         vk::CommandBufferAllocateInfo infoAlloc;
-        infoAlloc.level = vk::CommandBufferLevel::ePrimary;
+        infoAlloc.commandPool = poolDeComandos_;
         infoAlloc.commandBufferCount = 1;
 
         vk::CommandBuffer comando =
