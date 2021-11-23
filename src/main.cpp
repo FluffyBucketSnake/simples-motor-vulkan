@@ -260,7 +260,7 @@ class App {
 
     void carregarRecursos() {
         carregarImagem(kCaminhoDaImagem, vk::ImageLayout::eGeneral, imagem_,
-                       memoriaImagem_);
+                       memoriaImagem_, dimensoesImagem_);
         visaoImagem_ = criarVisaoDeImagem(imagem_);
         atualizarSetDeDescritores();
     }
@@ -268,11 +268,12 @@ class App {
     void carregarImagem(const std::string& caminho,
                         vk::ImageLayout layoutFinal,
                         vk::Image& imagem,
-                        vk::DeviceMemory memoria) {
+                        vk::DeviceMemory& memoria,
+                        vk::Extent3D& dimensoes) {
         int largura, altura, _canais;
         stbi_uc* pixels = stbi_load(caminho.c_str(), &largura, &altura,
                                     &_canais, STBI_rgb_alpha);
-        vk::Extent3D dimensoes = {largura, altura, 1};
+        dimensoes = {largura, altura, 1};
         size_t tamanho = largura * altura * 4;
 
         criarImagem(vk::Format::eR8G8B8A8Srgb, dimensoes,
@@ -516,7 +517,8 @@ class App {
         bufferDeComandos_.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
                                              layoutDaPipeline_, 0,
                                              {setDeEntrada_}, {});
-        bufferDeComandos_.dispatch(640 / 32, 480 / 32, 1);
+        bufferDeComandos_.dispatch(dimensoesImagem_.width / 32,
+                                   dimensoesImagem_.height / 32, 1);
         bufferDeComandos_.end();
     }
 
@@ -588,9 +590,10 @@ class App {
     vk::DescriptorSet setDeEntrada_;
 
     const std::string kCaminhoDaImagem = "res/statue-g162b3a07b_640.jpg";
+    vk::Extent3D dimensoesImagem_;
     vk::Image imagem_;
     vk::DeviceMemory memoriaImagem_;
-    vk::ImageViw visaoImagem_;
+    vk::ImageView visaoImagem_;
 };
 }  // namespace smv
 
