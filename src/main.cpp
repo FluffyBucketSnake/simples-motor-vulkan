@@ -259,7 +259,8 @@ class App {
     }
 
     void carregarRecursos() {
-        carregarImagem(kCaminhoDaImagem, vk::ImageLayout::eGeneral, imagem_,
+        carregarImagem(kCaminhoDaImagem, vk::ImageLayout::eGeneral,
+                       vk::PipelineStageFlagBits::eComputeShader, imagem_,
                        memoriaImagem_, dimensoesImagem_);
         visaoImagem_ = criarVisaoDeImagem(imagem_);
         atualizarSetDeDescritores();
@@ -267,6 +268,7 @@ class App {
 
     void carregarImagem(const std::string& caminho,
                         vk::ImageLayout layoutFinal,
+                        vk::PipelineStageFlagBits estagioDestino,
                         vk::Image& imagem,
                         vk::DeviceMemory& memoria,
                         vk::Extent3D& dimensoes) {
@@ -296,11 +298,14 @@ class App {
         dispositivo_.unmapMemory(memoriaBufferDePreparo);
         stbi_image_free(pixels);
 
-        alterarLayout(imagem, vk::ImageLayout::eUndefined,
+        alterarLayout(imagem, vk::PipelineStageFlagBits::eTopOfPipe,
+                      vk::PipelineStageFlagBits::eTransfer,
+                      vk::ImageLayout::eUndefined,
                       vk::ImageLayout::eTransferDstOptimal);
         copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
                                  dimensoes.height);
-        alterarLayout(imagem, vk::ImageLayout::eTransferDstOptimal,
+        alterarLayout(imagem, vk::PipelineStageFlagBits::eTransfer,
+                      estagioDestino, vk::ImageLayout::eTransferDstOptimal,
                       layoutFinal);
 
         dispositivo_.destroyBuffer(bufferDePreparo);
@@ -308,6 +313,8 @@ class App {
     }
 
     void alterarLayout(const vk::Image& imagem,
+                       vk::PipelineStageFlags estagioFonte,
+                       vk::PipelineStageFlags estagioDestino,
                        vk::ImageLayout layoutAntigo,
                        vk::ImageLayout layoutNovo) {
         vk::ImageMemoryBarrier barreira;
@@ -326,7 +333,8 @@ class App {
         barreira.subresourceRange.layerCount = 1;
 
         vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
-        comando.pipelineBarrier({}, {}, {}, nullptr, nullptr, {barreira});
+        comando.pipelineBarrier(estagioFonte, estagioDestino, {}, nullptr,
+                                nullptr, barreira);
         finalizarComandoDeUsoUnico(comando);
     }
 
