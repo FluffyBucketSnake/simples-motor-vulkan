@@ -547,6 +547,7 @@ class App {
 
     void destruir() {
         dispositivo_.destroyDescriptorPool(poolDeDescritores_);
+        dispositivo_.destroyImageView(visaoImagem_);
         dispositivo_.destroyImage(imagem_);
         dispositivo_.freeMemory(memoriaImagem_);
         dispositivo_.destroyCommandPool(poolDeComandos_);
