@@ -278,6 +278,7 @@ class App {
 
         criarImagem(vk::Format::eR8G8B8A8Srgb, dimensoes,
                     vk::ImageUsageFlagBits::eTransferDst |
+                        vk::ImageUsageFlagBits::eTransferSrc |
                         vk::ImageUsageFlagBits::eStorage,
                     imagem, memoria);
 
