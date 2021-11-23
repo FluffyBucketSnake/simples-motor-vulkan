@@ -279,7 +279,7 @@ class App {
                                  static_cast<uint32_t>(altura), 1u};
         size_t tamanho = dimensoes.width * dimensoes.height * 4u;
 
-        criarImagem(vk::Format::eR8G8B8A8Uint, dimensoes,
+        criarImagem(vk::Format::eR8G8B8A8Unorm, dimensoes,
                     vk::ImageUsageFlagBits::eTransferDst |
                         vk::ImageUsageFlagBits::eTransferSrc |
                         vk::ImageUsageFlagBits::eStorage,
@@ -427,7 +427,7 @@ class App {
         // info.flags = {};
         info.image = imagem;
         info.viewType = vk::ImageViewType::e2D;
-        info.format = vk::Format::eR8G8B8A8Uint;
+        info.format = vk::Format::eR8G8B8A8Unorm;
         // info.components = {};
         info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
         info.subresourceRange.baseMipLevel = 0;
