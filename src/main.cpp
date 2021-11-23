@@ -294,7 +294,7 @@ class App {
 
         alterarLayout(imagem, vk::ImageLayout::eUndefined,
                       vk::ImageLayout::eTransferDstOptimal);
-        copiarDeBufferParaImagem(bufferDePreparo, imagem);
+        copiarDeBufferParaImagem(bufferDePreparo, imagem, largura, altura);
         alterarLayout(imagem, vk::ImageLayout::eTransferDstOptimal,
                       layoutFinal);
 
@@ -337,7 +337,7 @@ class App {
         infoBegin.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
         comando.begin(infoBegin);
-        
+
         return comando;
     }
 
@@ -347,12 +347,35 @@ class App {
         vk::SubmitInfo infoSubmit;
         infoSubmit.commandBufferCount = 1;
         infoSubmit.pCommandBuffers = &comando;
-        
+
         filaComputacao_.submit(infoSubmit, nullptr);
         filaComputacao_.waitIdle();
 
         dispositivo_.freeCommandBuffers(poolDeComandos_, {comando});
     }
+
+    void copiarDeBufferParaImagem(vk::Buffer bufferFonte,
+                                  vk::Image imagemDestino,
+                                  uint32_t largura,
+                                  uint32_t altura) {
+        vk::BufferImageCopy regiao;
+
+        // regiao.bufferOffset = 0;
+        // regiao.bufferRowLength = 0;
+        // regiao.bufferImageHeight = 0;
+
+        regiao.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        regiao.imageSubresource.mipLevel = 0;
+        regiao.imageSubresource.baseArrayLayer = 0;
+        regiao.imageSubresource.layerCount = 1;
+
+        regiao.imageOffset = {0, 0, 0};
+        regiao.imageExtent = {largura, altura, 1};
+
+        vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
+        comando.copyBufferToImage(bufferFonte, imagemDestino,
+                                  vk::ImageLayout::eTransferDstOptimal,
+                                  {regiao});
     }
 
     void criarImagem(vk::Format formato,
