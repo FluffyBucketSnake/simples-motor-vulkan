@@ -311,6 +311,58 @@ class App {
         dispositivo_.destroyBuffer(bufferDePreparo);
         dispositivo_.freeMemory(memoriaBufferDePreparo);
     }
+
+    void alterarLayout(const vk::Image& imagem,
+                       vk::ImageLayout layoutAntigo,
+                       vk::ImageLayout layoutNovo) {
+        vk::ImageMemoryBarrier barreira;
+        // barreira.srcAccessMask = {}; TODO
+        // barreira.dstAccessMask = {}; TODO
+        barreira.oldLayout = layoutAntigo;
+        barreira.newLayout = layoutNovo;
+        // barreira.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        // barreira.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+        barreira.image = imagem;
+        barreira.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        barreira.subresourceRange.baseMipLevel = 0;
+        barreira.subresourceRange.levelCount = 1;
+        barreira.subresourceRange.baseArrayLayer = 0;
+        barreira.subresourceRange.layerCount = 1;
+
+        vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
+        comando.pipelineBarrier({}, {}, {}, nullptr, nullptr, {barreira});
+        finalizarComandoDeUsoUnico(comando);
+    }
+
+    vk::CommandBuffer iniciarComandoDeUsoUnico() {
+        vk::CommandBufferAllocateInfo infoAlloc;
+        infoAlloc.level = vk::CommandBufferLevel::ePrimary;
+        infoAlloc.commandBufferCount = 1;
+
+        vk::CommandBuffer comando =
+            dispositivo_.allocateCommandBuffers(infoAlloc)[0];
+
+        vk::CommandBufferBeginInfo infoBegin;
+        infoBegin.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+        comando.begin(infoBegin);
+        
+        return comando;
+    }
+
+    void finalizarComandoDeUsoUnico(vk::CommandBuffer comando) {
+        comando.end();
+
+        vk::SubmitInfo infoSubmit;
+        infoSubmit.commandBufferCount = 1;
+        infoSubmit.pCommandBuffers = &comando;
+        
+        filaComputacao_.submit(infoSubmit, nullptr);
+        filaComputacao_.waitIdle();
+
+        dispositivo_.freeCommandBuffers(poolDeComandos_, {comando});
+    }
     }
 
     void criarImagem(vk::Format formato,
