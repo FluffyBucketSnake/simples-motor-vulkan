@@ -513,7 +513,7 @@ class App {
         alocarBufferDeComandos();
         gravarBufferDeComandos();
         executarComandos();
-        confirmarResultados();
+        salvarImagem();
     }
 
     void alocarBufferDeComandos() {
@@ -555,15 +555,10 @@ class App {
         filaComputacao_.waitIdle();
     }
 
-    void confirmarResultados() {
-        void* localDaMemoria =
-            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
-        auto resultados = reinterpret_cast<const int*>(localDaMemoria);
-        for (size_t i = 0; i < kNumDeItens; i++) {
-            assert(resultados[i] == 8);
-        }
-        std::cout << std::endl;
-        dispositivo_.unmapMemory(memoriaBuffer_);
+    void salvarImagem() {
+        // vk::Buffer bufferDestino;
+        // vk::DeviceMemory memoriaBufferDestino;
+        // criarBuffer(vk::BufferUsageFlagBits::eTransferDst, )
     }
 
     void destruir() {
