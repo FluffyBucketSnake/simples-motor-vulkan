@@ -269,22 +269,48 @@ class App {
     }
 
     void carregarRecursos() {
-        carregarImagem(kCaminhoDaImagem, imagem_, memoriaImagem_);
+        carregarImagem(kCaminhoDaImagem, vk::ImageLayout::eGeneral, imagem_,
+                       memoriaImagem_);
         atualizarSetDeDescritores();
     }
 
     void carregarImagem(const std::string& caminho,
+                        vk::ImageLayout layoutFinal,
                         vk::Image& imagem,
                         vk::DeviceMemory memoria) {
         int largura, altura, _canais;
         stbi_uc* pixels = stbi_load(caminho.c_str(), &largura, &altura,
                                     &_canais, STBI_rgb_alpha);
         vk::Extent3D dimensoes = {largura, altura, 1};
+        size_t tamanho = largura * altura * 4;
 
         criarImagem(vk::Format::eR8G8B8A8Srgb, dimensoes,
                     vk::ImageUsageFlagBits::eTransferDst |
                         vk::ImageUsageFlagBits::eStorage,
                     imagem, memoria);
+
+        vk::Buffer bufferDePreparo;
+        vk::DeviceMemory memoriaBufferDePreparo;
+        criarBuffer(vk::BufferUsageFlagBits::eTransferSrc, tamanho,
+                    vk::MemoryPropertyFlagBits::eHostVisible |
+                        vk::MemoryPropertyFlagBits::eHostCoherent,
+                    bufferDePreparo, memoriaBufferDePreparo);
+
+        void* dados =
+            dispositivo_.mapMemory(memoriaBufferDePreparo, 0, tamanho);
+        std::memcpy(dados, pixels, tamanho);
+        dispositivo_.unmapMemory(memoriaBufferDePreparo);
+        stbi_image_free(pixels);
+
+        alterarLayout(imagem, vk::ImageLayout::eUndefined,
+                      vk::ImageLayout::eTransferDstOptimal);
+        copiarDeBufferParaImagem(bufferDePreparo, imagem);
+        alterarLayout(imagem, vk::ImageLayout::eTransferDstOptimal,
+                      layoutFinal);
+
+        dispositivo_.destroyBuffer(bufferDePreparo);
+        dispositivo_.freeMemory(memoriaBufferDePreparo);
+    }
     }
 
     void criarImagem(vk::Format formato,
