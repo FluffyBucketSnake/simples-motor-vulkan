@@ -515,10 +515,18 @@ class App {
     }
 
     void executar() {
+        criarCerca();
         alocarBufferDeComandos();
         gravarBufferDeComandos();
         executarComandos();
         salvarImagem();
+    }
+
+    void criarCerca() {
+        vk::FenceCreateInfo info;
+        // info.flags = {};
+
+        cerca_ = dispositivo_.createFence(info);
     }
 
     void alocarBufferDeComandos() {
@@ -556,8 +564,9 @@ class App {
         // info.signalSemaphoreCount = 0;
         // info.pSignalSemaphores = nullptr;
 
-        filaComputacao_.submit({info}, nullptr);
-        filaComputacao_.waitIdle();
+        filaComputacao_.submit({info}, cerca_);
+        dispositivo_.waitForFences(cerca_, true,
+                                   std::numeric_limits<uint64_t>::max());
     }
 
     void salvarImagem() {
@@ -602,6 +611,7 @@ class App {
     }
 
     void destruir() {
+        dispositivo_.destroyFence(cerca_);
         dispositivo_.destroyDescriptorPool(poolDeDescritores_);
         dispositivo_.destroyImageView(visaoImagem_);
         dispositivo_.destroyImage(imagem_);
@@ -642,6 +652,8 @@ class App {
 
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeEntrada_;
+
+    vk::Fence cerca_;
 
     const std::string kCaminhoDaImagemFonte = "res/statue-g162b3a07b_640.jpg";
     const std::string kCaminhoDaImagemDestino =
