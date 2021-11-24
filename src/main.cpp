@@ -561,6 +561,12 @@ class App {
     }
 
     void salvarImagem() {
+        dispositivo_.freeCommandBuffers(poolDeComandos_, {bufferDeComandos_});
+        alterarLayout(imagem_, vk::PipelineStageFlagBits::eBottomOfPipe,
+                      vk::PipelineStageFlagBits::eTransfer,
+                      vk::ImageLayout::eGeneral,
+                      vk::ImageLayout::eTransferSrcOptimal);
+
         size_t tamanho = dimensoesImagem_.width * dimensoesImagem_.height * 4;
         vk::Buffer bufferDestino;
         vk::DeviceMemory memoriaBufferDestino;
@@ -569,14 +575,30 @@ class App {
                         vk::MemoryPropertyFlagBits::eHostVisible,
                     bufferDestino, memoriaBufferDestino);
 
-        copiarDeImagemParaBuffer(imagem_, bufferDestino, dimensoesImagem_.width,
-                                 dimensoesImagem_.height);
+        vk::BufferImageCopy regiao;
+
+        regiao.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        regiao.imageSubresource.mipLevel = 0;
+        regiao.imageSubresource.baseArrayLayer = 0;
+        regiao.imageSubresource.layerCount = 1;
+
+        regiao.imageOffset = vk::Offset3D{0, 0, 0};
+        regiao.imageExtent = dimensoesImagem_;
+
+        vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
+        comando.copyImageToBuffer(imagem_, vk::ImageLayout::eTransferSrcOptimal,
+                                  bufferDestino, {regiao});
+        finalizarComandoDeUsoUnico(comando);
 
         void* dados = dispositivo_.mapMemory(memoriaBufferDestino, 0, tamanho);
-        stbi_write_jpg(
-            kCaminhoDaImagemDestino.c_str(), static_cast<int>(dimensoesImagem_.width),
-            static_cast<int>(dimensoesImagem_.height), 4, dados, 100);
+        stbi_write_jpg(kCaminhoDaImagemDestino.c_str(),
+                       static_cast<int>(dimensoesImagem_.width),
+                       static_cast<int>(dimensoesImagem_.height), 4, dados,
+                       100);
         dispositivo_.unmapMemory(memoriaBufferDestino);
+
+        dispositivo_.destroyBuffer(bufferDestino);
+        dispositivo_.freeMemory(memoriaBufferDestino);
     }
 
     void destruir() {
@@ -623,7 +645,7 @@ class App {
 
     const std::string kCaminhoDaImagemFonte = "res/statue-g162b3a07b_640.jpg";
     const std::string kCaminhoDaImagemDestino =
-        "res/statue-g162b3a07b_640_saida.jpg";
+        "statue - g162b3a07b_640_saida.jpg ";
     vk::Extent3D dimensoesImagem_;
     vk::Image imagem_;
     vk::DeviceMemory memoriaImagem_;
