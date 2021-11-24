@@ -262,7 +262,7 @@ class App {
     }
 
     void carregarRecursos() {
-        carregarImagem(kCaminhoDaImagem, vk::ImageLayout::eGeneral,
+        carregarImagem(kCaminhoDaImagemFonte, vk::ImageLayout::eGeneral,
                        vk::PipelineStageFlagBits::eComputeShader, imagem_,
                        memoriaImagem_, dimensoesImagem_);
         visaoImagem_ = criarVisaoDeImagem(imagem_);
@@ -559,9 +559,22 @@ class App {
     }
 
     void salvarImagem() {
-        // vk::Buffer bufferDestino;
-        // vk::DeviceMemory memoriaBufferDestino;
-        // criarBuffer(vk::BufferUsageFlagBits::eTransferDst, )
+        size_t tamanho = dimensoesImagem_.width * dimensoesImagem_.height * 4;
+        vk::Buffer bufferDestino;
+        vk::DeviceMemory memoriaBufferDestino;
+        criarBuffer(vk::BufferUsageFlagBits::eTransferDst, tamanho,
+                    vk::MemoryPropertyFlagBits::eHostCoherent |
+                        vk::MemoryPropertyFlagBits::eHostVisible,
+                    bufferDestino, memoriaBufferDestino);
+
+        copiarDeImagemParaBuffer(imagem_, bufferDestino, dimensoesImagem_.width,
+                                 dimensoesImagem_.height);
+
+        void* dados = dispositivo_.mapMemory(memoriaBufferDestino, 0, tamanho);
+        stbi_write_jpg(
+            kCaminhoDaImagemDestino.c_str(), static_cast<int>(dimensoesImagem_.width),
+            static_cast<int>(dimensoesImagem_.height), 4, dados, 100);
+        dispositivo_.unmapMemory(memoriaBufferDestino);
     }
 
     void destruir() {
@@ -606,7 +619,9 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeEntrada_;
 
-    const std::string kCaminhoDaImagem = "res/statue-g162b3a07b_640.jpg";
+    const std::string kCaminhoDaImagemFonte = "res/statue-g162b3a07b_640.jpg";
+    const std::string kCaminhoDaImagemDestino =
+        "res/statue-g162b3a07b_640_saida.jpg";
     vk::Extent3D dimensoesImagem_;
     vk::Image imagem_;
     vk::DeviceMemory memoriaImagem_;
