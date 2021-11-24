@@ -392,6 +392,7 @@ class App {
         comando.copyBufferToImage(bufferFonte, imagemDestino,
                                   vk::ImageLayout::eTransferDstOptimal,
                                   {regiao});
+        finalizarComandoDeUsoUnico(comando);
     }
 
     void criarImagem(vk::Format formato,
