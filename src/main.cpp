@@ -263,16 +263,13 @@ class App {
     }
 
     void carregarRecursos() {
-        carregarImagem(kCaminhoDaImagemFonte, vk::ImageLayout::eGeneral,
-                       vk::PipelineStageFlagBits::eComputeShader, imagem_,
-                       memoriaImagem_, dimensoesImagem_);
+        carregarImagem(kCaminhoDaImagemFonte, imagem_, memoriaImagem_,
+                       dimensoesImagem_);
         visaoImagem_ = criarVisaoDeImagem(imagem_);
         atualizarSetDeDescritores();
     }
 
     void carregarImagem(const std::string& caminho,
-                        vk::ImageLayout layoutFinal,
-                        vk::PipelineStageFlagBits estagioDestino,
                         vk::Image& imagem,
                         vk::DeviceMemory& memoria,
                         vk::Extent3D& dimensoes) {
@@ -313,8 +310,9 @@ class App {
         copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
                                  dimensoes.height);
         alterarLayout(imagem, vk::PipelineStageFlagBits::eTransfer,
-                      estagioDestino, vk::ImageLayout::eTransferDstOptimal,
-                      layoutFinal);
+                      vk::PipelineStageFlagBits::eComputeShader,
+                      vk::ImageLayout::eTransferDstOptimal,
+                      vk::ImageLayout::eGeneral);
 
         dispositivo_.destroyBuffer(bufferDePreparo);
         dispositivo_.freeMemory(memoriaBufferDePreparo);
