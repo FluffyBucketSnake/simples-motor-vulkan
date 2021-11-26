@@ -279,6 +279,10 @@ class App {
         int largura, altura, _canais;
         stbi_uc* pixels = stbi_load(caminho.c_str(), &largura, &altura,
                                     &_canais, STBI_rgb_alpha);
+        if (pixels == nullptr) {
+            std::cout << "Não foi possível carregar a imagem '" << caminho
+                      << "'." << std::endl;
+        }
         dimensoes = vk::Extent3D{static_cast<uint32_t>(largura),
                                  static_cast<uint32_t>(altura), 1u};
         size_t tamanho = dimensoes.width * dimensoes.height * 4u;
