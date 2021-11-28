@@ -304,15 +304,18 @@ class App {
         stbi_image_free(pixels);
 
         alterarLayout(imagem, vk::PipelineStageFlagBits::eTopOfPipe,
-                      vk::PipelineStageFlagBits::eTransfer,
+                      vk::PipelineStageFlagBits::eTransfer, {},
+                      vk::AccessFlagBits::eTransferWrite,
                       vk::ImageLayout::eUndefined,
                       vk::ImageLayout::eTransferDstOptimal);
         copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
                                  dimensoes.height);
-        alterarLayout(imagem, vk::PipelineStageFlagBits::eTransfer,
-                      vk::PipelineStageFlagBits::eComputeShader,
-                      vk::ImageLayout::eTransferDstOptimal,
-                      vk::ImageLayout::eGeneral);
+        alterarLayout(
+            imagem, vk::PipelineStageFlagBits::eTransfer,
+            vk::PipelineStageFlagBits::eComputeShader,
+            vk::AccessFlagBits::eTransferWrite,
+            vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
+            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
 
         dispositivo_.destroyBuffer(bufferDePreparo);
         dispositivo_.freeMemory(memoriaBufferDePreparo);
@@ -321,11 +324,13 @@ class App {
     void alterarLayout(const vk::Image& imagem,
                        vk::PipelineStageFlags estagioFonte,
                        vk::PipelineStageFlags estagioDestino,
+                       vk::AccessFlags acessoFonte,
+                       vk::AccessFlags acessoDestino,
                        vk::ImageLayout layoutAntigo,
                        vk::ImageLayout layoutNovo) {
         vk::ImageMemoryBarrier barreira;
-        // barreira.srcAccessMask = {}; TODO
-        // barreira.dstAccessMask = {}; TODO
+        barreira.srcAccessMask = acessoFonte;
+        barreira.dstAccessMask = acessoDestino;
         barreira.oldLayout = layoutAntigo;
         barreira.newLayout = layoutNovo;
         // barreira.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -575,6 +580,8 @@ class App {
         dispositivo_.freeCommandBuffers(poolDeComandos_, {bufferDeComandos_});
         alterarLayout(imagem_, vk::PipelineStageFlagBits::eBottomOfPipe,
                       vk::PipelineStageFlagBits::eTransfer,
+                      vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
+                      vk::AccessFlagBits::eTransferRead,
                       vk::ImageLayout::eGeneral,
                       vk::ImageLayout::eTransferSrcOptimal);
 
