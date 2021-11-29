@@ -577,8 +577,7 @@ class App {
     }
 
     void salvarImagem() {
-        dispositivo_.freeCommandBuffers(poolDeComandos_, {bufferDeComandos_});
-        alterarLayout(imagem_, vk::PipelineStageFlagBits::eBottomOfPipe,
+        alterarLayout(imagem_, vk::PipelineStageFlagBits::eComputeShader,
                       vk::PipelineStageFlagBits::eTransfer,
                       vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
                       vk::AccessFlagBits::eTransferRead,
