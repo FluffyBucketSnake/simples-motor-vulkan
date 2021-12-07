@@ -58,10 +58,14 @@ class App {
         infoApp.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         infoApp.apiVersion = VK_API_VERSION_1_0;
 
+        uint32_t numDeExtensoesGLFW;
+        const char** extensoesGLFW =
+            glfwGetRequiredInstanceExtensions(&numDeExtensoesGLFW);
+
         vk::InstanceCreateInfo info;
         info.pApplicationInfo = &infoApp;
-        // info.enabledExtensionCount = 0;
-        // info.ppEnabledExtensionNames = nullptr;
+        info.enabledExtensionCount = numDeExtensoesGLFW;
+        info.ppEnabledExtensionNames = extensoesGLFW;
         if (kAtivarCamadasDeValidacao) {
             info.enabledLayerCount =
                 static_cast<uint32_t>(kCamadasDeValidacao.size());
@@ -153,7 +157,7 @@ class App {
     }
 
     void loopPrincipal() {
-        while(!glfwWindowShouldClose(janela_)) {
+        while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
         }
     }
