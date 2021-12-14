@@ -108,10 +108,9 @@ class App {
 
     void escolherDispositivoFisico() {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
-
         auto resultado =
             std::find_if(dispositivosFisicos.begin(), dispositivosFisicos.end(),
-                         verificarDispositivo);
+                         [this](vk::PhysicalDevice d){ return verificarDispositivo(d); });
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -121,25 +120,54 @@ class App {
         dispositivoFisico_ = *resultado;
     }
 
-    static bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
+    bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
         // auto propriedades = dispositivo.getProperties();
         // auto capacidades = dispositivo.getFeatures();
 
         return verificarFilasDoDispositivo(dispositivo);
     }
 
-    static bool verificarFilasDoDispositivo(
-        const vk::PhysicalDevice& dispositivo) {
-        return buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eCompute)
-            .has_value();
+    bool verificarFilasDoDispositivo(const vk::PhysicalDevice& dispositivo) {
+        bool possuiFilaGrafica =
+            buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eGraphics)
+                .has_value();
+
+        bool possuiFilaDeApresentacao =
+            buscarFamiliaDeFilasDePresentacao(dispositivo).has_value();
+
+        return possuiFilaGrafica && possuiFilaDeApresentacao;
+    }
+
+    std::optional<uint32_t> buscarFamiliaDeFilasDePresentacao(
+        vk::PhysicalDevice dispositivo) {
+        auto familias = dispositivo.getQueueFamilyProperties();
+
+        std::optional<uint32_t> valor = {};
+        for (uint32_t i = 0; i < familias.size(); i++) {
+            if (dispositivo.getSurfaceSupportKHR(i, superficie_)) {
+                valor = i;
+                break;
+            }
+        }
+
+        return valor;
     }
 
     void criarDispositivoLogicoEFilas() {
         vk::PhysicalDeviceFeatures capacidades;
 
+        auto familias = obterFamiliaDoDispositivo();
+
+        std::vector<vk::DeviceQueueCreateInfo> infos;
+        float prioridade = 1.0f;
+        for (auto familia : familias) {
+            infos.push_back({{}, familia, 1, &prioridade});
+        }
+
         vk::DeviceCreateInfo info;
         info.pEnabledFeatures = &capacidades;
-        info.queueCreateInfoCount = 0;
+        info.queueCreateInfoCount = static_cast<uint32_t>(infos.size());
+        info.pQueueCreateInfos = infos.data();
         if (kAtivarCamadasDeValidacao) {
             info.enabledLayerCount =
                 static_cast<uint32_t>(kCamadasDeValidacao.size());
@@ -147,6 +175,23 @@ class App {
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
+        filaDeApresentacao_ = dispositivo_.getQueue(familiaDeApresentacao_, 0);
+        filaDeGraficos_ = dispositivo_.getQueue(familiaDeGraficos_, 0);
+    }
+
+    std::vector<uint32_t> obterFamiliaDoDispositivo() {
+        familiaDeGraficos_ = buscarFamiliaDeFilas(dispositivoFisico_,
+                                                  vk::QueueFlagBits::eGraphics)
+                                 .value();
+
+        familiaDeApresentacao_ =
+            buscarFamiliaDeFilasDePresentacao(dispositivoFisico_).value();
+
+        if (familiaDeApresentacao_ == familiaDeGraficos_) {
+            return { familiaDeGraficos_ };
+        } else {
+            return { familiaDeGraficos_, familiaDeApresentacao_ };
+        }
     }
 
     static std::optional<uint32_t> buscarFamiliaDeFilas(
@@ -198,6 +243,11 @@ class App {
     vk::Instance instancia_;
     vk::PhysicalDevice dispositivoFisico_;
     vk::Device dispositivo_;
+
+    uint32_t familiaDeGraficos_;
+    vk::Queue filaDeGraficos_;
+    uint32_t familiaDeApresentacao_;
+    vk::Queue filaDeApresentacao_;
 };
 }  // namespace smv
 
