@@ -31,6 +31,7 @@ class App {
     void iniciar() {
         criarJanela();
         criarInstancia();
+        criarSuperficie();
         escolherDispositivoFisico();
         // criarDispositivoLogicoEFilas();
     }
@@ -94,6 +95,15 @@ class App {
         }
 
         return true;
+    }
+
+    void criarSuperficie() {
+        VkSurfaceKHR superficiePura;
+        if (glfwCreateWindowSurface(instancia_, janela_, nullptr,
+                                    &superficiePura) != VK_SUCCESS) {
+            throw std::runtime_error("Não foi possível criar a superfície.");
+        }
+        superficie_ = vk::SurfaceKHR(superficiePura);
     }
 
     void escolherDispositivoFisico() {
@@ -164,6 +174,7 @@ class App {
 
     void destruir() {
         dispositivo_.destroy();
+        instancia_.destroySurfaceKHR(superficie_);
         instancia_.destroy();
         glfwDestroyWindow(janela_);
         glfwTerminate();
@@ -182,6 +193,7 @@ class App {
     const int kAlturaDaJanela = 600;
     const char* kTituloDaJanela = "Simples Motor Vulkan";
     GLFWwindow* janela_;
+    vk::SurfaceKHR superficie_;
 
     vk::Instance instancia_;
     vk::PhysicalDevice dispositivoFisico_;
