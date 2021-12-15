@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #define GLFW_INCLUDE_VULKAN
@@ -33,7 +34,7 @@ class App {
         criarInstancia();
         criarSuperficie();
         escolherDispositivoFisico();
-        // criarDispositivoLogicoEFilas();
+        criarDispositivoLogicoEFilas();
     }
 
     void criarJanela() {
@@ -108,9 +109,9 @@ class App {
 
     void escolherDispositivoFisico() {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
-        auto resultado =
-            std::find_if(dispositivosFisicos.begin(), dispositivosFisicos.end(),
-                         [this](vk::PhysicalDevice d){ return verificarDispositivo(d); });
+        auto resultado = std::find_if(
+            dispositivosFisicos.begin(), dispositivosFisicos.end(),
+            [this](vk::PhysicalDevice d) { return verificarDispositivo(d); });
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -121,10 +122,12 @@ class App {
     }
 
     bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
-        // auto propriedades = dispositivo.getProperties();
-        // auto capacidades = dispositivo.getFeatures();
+        bool possuiFilas = verificarFilasDoDispositivo(dispositivo);
+        bool suportaExtensoes = verificarSuporteDeExtensoes(dispositivo);
+        bool adequadoParaSwapchain =
+            suportaExtensoes && verificarSuporteDeSwapchain(dispositivo);
 
-        return verificarFilasDoDispositivo(dispositivo);
+        return possuiFilas && adequadoParaSwapchain;
     }
 
     bool verificarFilasDoDispositivo(const vk::PhysicalDevice& dispositivo) {
@@ -153,6 +156,28 @@ class App {
         return valor;
     }
 
+    bool verificarSuporteDeExtensoes(const vk::PhysicalDevice& dispositivo) {
+        auto extensoesDisponiveis =
+            dispositivo.enumerateDeviceExtensionProperties();
+        std::unordered_set<std::string> extensoesRestantes(
+            kExtensoesDeDispositivo.begin(), kExtensoesDeDispositivo.end());
+
+        for (const auto& extensao : extensoesDisponiveis) {
+            extensoesRestantes.erase(extensao.extensionName);
+        }
+
+        return extensoesRestantes.empty();
+    }
+
+    bool verificarSuporteDeSwapchain(const vk::PhysicalDevice& dispositivo) {
+        bool possuiFormatos =
+            !dispositivo.getSurfaceFormatsKHR(superficie_).empty();
+        bool possuiModosDeApresentacao =
+            !dispositivo.getSurfacePresentModesKHR(superficie_).empty();
+
+        return possuiFormatos && possuiModosDeApresentacao;
+    }
+
     void criarDispositivoLogicoEFilas() {
         vk::PhysicalDeviceFeatures capacidades;
 
@@ -168,6 +193,9 @@ class App {
         info.pEnabledFeatures = &capacidades;
         info.queueCreateInfoCount = static_cast<uint32_t>(infos.size());
         info.pQueueCreateInfos = infos.data();
+        info.enabledExtensionCount =
+            static_cast<uint32_t>(kExtensoesDeDispositivo.size());
+        info.ppEnabledExtensionNames = kExtensoesDeDispositivo.data();
         if (kAtivarCamadasDeValidacao) {
             info.enabledLayerCount =
                 static_cast<uint32_t>(kCamadasDeValidacao.size());
@@ -188,9 +216,9 @@ class App {
             buscarFamiliaDeFilasDePresentacao(dispositivoFisico_).value();
 
         if (familiaDeApresentacao_ == familiaDeGraficos_) {
-            return { familiaDeGraficos_ };
+            return {familiaDeGraficos_};
         } else {
-            return { familiaDeGraficos_, familiaDeApresentacao_ };
+            return {familiaDeGraficos_, familiaDeApresentacao_};
         }
     }
 
