@@ -35,6 +35,7 @@ class App {
         criarSuperficie();
         escolherDispositivoFisico();
         criarDispositivoLogicoEFilas();
+        criarSwapchain();
     }
 
     void criarJanela() {
@@ -239,6 +240,126 @@ class App {
         return std::distance(familias.begin(), familia);
     }
 
+    void criarSwapchain() {
+        auto capacidades =
+            dispositivoFisico_.getSurfaceCapabilitiesKHR(superficie_);
+        auto formatosDisponiveis =
+            dispositivoFisico_.getSurfaceFormatsKHR(superficie_);
+        auto modosDeApresentacaoDisponiveis =
+            dispositivoFisico_.getSurfacePresentModesKHR(superficie_);
+
+        auto formato = escolherFormatoDaSwapchain(formatosDisponiveis);
+        auto modoDeApresentacao =
+            escolherModoDeApresentacao(modosDeApresentacaoDisponiveis);
+        dimensoesDaSwapchain_ = escolherDimensoesDaSwapchain(capacidades);
+
+        uint32_t numeroDeImagens =
+            std::max(capacidades.minImageCount + 1, capacidades.maxImageCount);
+
+        vk::SwapchainCreateInfoKHR info;
+
+        info.surface = superficie_;
+        info.minImageCount = numeroDeImagens;
+        info.imageFormat = formatoDaSwapchain_ = formato.format;
+        info.imageColorSpace = formato.colorSpace;
+        info.imageExtent = dimensoesDaSwapchain_;
+        info.imageArrayLayers = 1;
+        info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+
+        info.preTransform = capacidades.currentTransform;
+        info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+        info.presentMode = modoDeApresentacao;
+        info.clipped = true;
+        info.oldSwapchain = nullptr;
+
+        if (familiaDeApresentacao_ != familiaDeGraficos_) {
+            std::array<uint32_t, 2> familias{familiaDeApresentacao_,
+                                             familiaDeGraficos_};
+            info.imageSharingMode = vk::SharingMode::eConcurrent;
+            info.queueFamilyIndexCount = static_cast<uint32_t>(familias.size());
+            info.pQueueFamilyIndices = familias.data();
+
+            swapChain_ = dispositivo_.createSwapchainKHR(info);
+        } else {
+            info.imageSharingMode = vk::SharingMode::eExclusive;
+            // info.queueFamilyIndexCount = 0;
+            // info.pQueueFamilyIndices = nullptr;
+
+            swapChain_ = dispositivo_.createSwapchainKHR(info);
+        }
+
+        imagensDaSwapchain_ = dispositivo_.getSwapchainImagesKHR(swapChain_);
+        visoesDasImagensDaSwapchain_.reserve(imagensDaSwapchain_.size());
+        for (const auto& imagem : imagensDaSwapchain_) {
+            visoesDasImagensDaSwapchain_.push_back(
+                criarVisaoDeImagem(imagem, formatoDaSwapchain_));
+        }
+    }
+
+    vk::SurfaceFormatKHR escolherFormatoDaSwapchain(
+        const std::vector<vk::SurfaceFormatKHR>& formatosDisponiveis) {
+        for (const auto& formato : formatosDisponiveis) {
+            if (formato.format == vk::Format::eB8G8R8A8Srgb &&
+                formato.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+                return formato;
+            }
+        }
+        return formatosDisponiveis[0];
+    }
+
+    vk::PresentModeKHR escolherModoDeApresentacao(
+        const std::vector<vk::PresentModeKHR>& modosDeApresentacaoDisponiveis) {
+        auto comeco = modosDeApresentacaoDisponiveis.begin();
+        auto fim = modosDeApresentacaoDisponiveis.end();
+
+        if (std::find(comeco, fim, vk::PresentModeKHR::eMailbox) != fim) {
+            return vk::PresentModeKHR::eMailbox;
+        }
+
+        return vk::PresentModeKHR::eFifo;
+    }
+
+    vk::Extent2D escolherDimensoesDaSwapchain(
+        const vk::SurfaceCapabilitiesKHR& capacidades) {
+        if (capacidades.currentExtent.width !=
+            std::numeric_limits<uint32_t>::max()) {
+            return capacidades.currentExtent;
+        } else {
+            int largura, altura;
+            glfwGetFramebufferSize(janela_, &largura, &altura);
+
+            vk::Extent2D dimensoes = {static_cast<uint32_t>(largura),
+                                      static_cast<uint32_t>(altura)};
+
+            vk::Extent2D minimo = capacidades.minImageExtent;
+            vk::Extent2D maximo = capacidades.maxImageExtent;
+
+            dimensoes.width =
+                std::clamp(dimensoes.width, minimo.width, maximo.width);
+            dimensoes.height =
+                std::clamp(dimensoes.height, minimo.height, maximo.height);
+
+            return dimensoes;
+        }
+    }
+
+    vk::ImageView criarVisaoDeImagem(const vk::Image& imagem,
+                                     vk::Format formato) {
+        vk::ImageViewCreateInfo info;
+        // info.flags = {};
+        info.image = imagem;
+        info.viewType = vk::ImageViewType::e2D;
+        info.format = formato;
+        // info.components = {};
+        info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        info.subresourceRange.baseMipLevel = 0;
+        info.subresourceRange.levelCount = 1;
+        info.subresourceRange.baseArrayLayer = 0;
+        info.subresourceRange.layerCount = 1;
+
+        return dispositivo_.createImageView(info);
+    }
+
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
@@ -246,6 +367,10 @@ class App {
     }
 
     void destruir() {
+        for (auto&& visao : visoesDasImagensDaSwapchain_) {
+            dispositivo_.destroyImageView(visao);
+        }
+        dispositivo_.destroySwapchainKHR(swapChain_);
         dispositivo_.destroy();
         instancia_.destroySurfaceKHR(superficie_);
         instancia_.destroy();
@@ -262,6 +387,9 @@ class App {
     const std::vector<const char*> kCamadasDeValidacao = {
         "VK_LAYER_KHRONOS_validation"};
 
+    const std::vector<const char*> kExtensoesDeDispositivo = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
     const int kLarguraDaJanela = 800;
     const int kAlturaDaJanela = 600;
     const char* kTituloDaJanela = "Simples Motor Vulkan";
@@ -276,6 +404,12 @@ class App {
     vk::Queue filaDeGraficos_;
     uint32_t familiaDeApresentacao_;
     vk::Queue filaDeApresentacao_;
+
+    vk::Format formatoDaSwapchain_;
+    vk::Extent2D dimensoesDaSwapchain_;
+    vk::SwapchainKHR swapChain_;
+    std::vector<vk::Image> imagensDaSwapchain_;
+    std::vector<vk::ImageView> visoesDasImagensDaSwapchain_;
 };
 }  // namespace smv
 
