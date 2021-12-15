@@ -36,6 +36,7 @@ class App {
         escolherDispositivoFisico();
         criarDispositivoLogicoEFilas();
         criarSwapchain();
+        criarPasseDeRenderizacao();
     }
 
     void criarJanela() {
@@ -360,6 +361,42 @@ class App {
         return dispositivo_.createImageView(info);
     }
 
+    void criarPasseDeRenderizacao() {
+        vk::AttachmentDescription anexoCor;
+        anexoCor.format = formatoDaSwapchain_;
+        // anexoCor.samples = vk::SampleCountFlagBits::e1;
+        anexoCor.loadOp = vk::AttachmentLoadOp::eClear;
+        anexoCor.storeOp = vk::AttachmentStoreOp::eStore;
+        anexoCor.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+        anexoCor.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+        anexoCor.initialLayout = vk::ImageLayout::eUndefined;
+        anexoCor.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+        vk::AttachmentReference refAnexoCor;
+        refAnexoCor.attachment = 0;
+        refAnexoCor.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+        vk::SubpassDescription subpasse;
+        // subpasse.flags = {};
+        // subpasse.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+        // subpasse.inputAttachmentCount = 0;
+        // subpasse.pInputAttachments = nullptr;
+        subpasse.colorAttachmentCount = 1;
+        subpasse.pColorAttachments = &refAnexoCor;
+        // subpasse.pResolveAttachments = nullptr;
+        // subpasse.pDepthStencilAttachment = nullptr;
+        // subpasse.preserveAttachmentCount = 0;
+        // subpasse.pPreserveAttachments = nullptr;
+
+        vk::RenderPassCreateInfo info;
+        info.attachmentCount = 1;
+        info.pAttachments = &anexoCor;
+        info.subpassCount = 1;
+        info.pSubpasses = &subpasse;
+
+        passeDeRenderizacao_ = dispositivo_.createRenderPass(info);
+    }
+
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
@@ -367,6 +404,7 @@ class App {
     }
 
     void destruir() {
+        dispositivo_.destroyRenderPass(passeDeRenderizacao_);
         for (auto&& visao : visoesDasImagensDaSwapchain_) {
             dispositivo_.destroyImageView(visao);
         }
@@ -410,6 +448,8 @@ class App {
     vk::SwapchainKHR swapChain_;
     std::vector<vk::Image> imagensDaSwapchain_;
     std::vector<vk::ImageView> visoesDasImagensDaSwapchain_;
+
+    vk::RenderPass passeDeRenderizacao_;
 };
 }  // namespace smv
 
