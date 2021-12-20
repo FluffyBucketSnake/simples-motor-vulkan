@@ -6,16 +6,6 @@
 #include <string>
 #include <vector>
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#pragma GCC diagnostic pop
-
 #include <vulkan/vulkan.hpp>
 
 namespace smv {
@@ -107,8 +97,7 @@ class App {
 
     static bool verificarFilasDoDispositivo(
         const vk::PhysicalDevice& dispositivo) {
-        return buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eCompute)
-            .has_value();
+        return true;
     }
 
     void criarDispositivoLogicoEFilas() {
@@ -144,16 +133,10 @@ class App {
     }
 
     void loopPrincipal() {
-        while(!glfwWindowShouldClose(janela_)) {
-            glfwPollEvents();
-        }
     }
 
     void destruir() {
-        dispositivo_.destroy();
         instancia_.destroy();
-        glfwDestroyWindow(janela_);
-        glfwTerminate();
     }
 
 #ifdef NDEBUG
@@ -168,7 +151,6 @@ class App {
     const int kLarguraDaJanela = 800;
     const int kAlturaDaJanela = 600;
     const char* kTituloDaJanela = "Simples Motor Vulkan";
-    GLFWwindow* janela_;
 
     vk::Instance instancia_;
     vk::PhysicalDevice dispositivoFisico_;
