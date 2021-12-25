@@ -393,8 +393,30 @@ class App {
         info.pAttachments = &anexoCor;
         info.subpassCount = 1;
         info.pSubpasses = &subpasse;
+        // info.dependencyCount = 0;
+        // info.pDependencies = nullptr;
 
         passeDeRenderizacao_ = dispositivo_.createRenderPass(info);
+    }
+
+    void criarFramebuffers() {
+        std::transform(
+            visoesDasImagensDaSwapchain_.begin(),
+            visoesDasImagensDaSwapchain_.end(),
+            std::back_inserter(framebuffers_),
+            [this](vk::ImageView i) { return criarFramebuffer(i); });
+    }
+
+    vk::Framebuffer criarFramebuffer(vk::ImageView imagemDaSwapchain) {
+        vk::FramebufferCreateInfo info;
+        info.renderPass = passeDeRenderizacao_;
+        info.attachmentCount = 1;
+        info.pAttachments = &imagemDaSwapchain;
+        info.width = dimensoesDaSwapchain_.width;
+        info.height = dimensoesDaSwapchain_.height;
+        info.layers = 1;
+
+        return dispositivo_.createFramebuffer(info);
     }
 
     void loopPrincipal() {
@@ -404,6 +426,9 @@ class App {
     }
 
     void destruir() {
+        for (auto&& framebuffer : framebuffers_) {
+            dispositivo_.destroyFramebuffer(framebuffer);
+        }
         dispositivo_.destroyRenderPass(passeDeRenderizacao_);
         for (auto&& visao : visoesDasImagensDaSwapchain_) {
             dispositivo_.destroyImageView(visao);
@@ -448,6 +473,7 @@ class App {
     vk::SwapchainKHR swapChain_;
     std::vector<vk::Image> imagensDaSwapchain_;
     std::vector<vk::ImageView> visoesDasImagensDaSwapchain_;
+    std::vector<vk::Framebuffer> framebuffers_;
 
     vk::RenderPass passeDeRenderizacao_;
 };
