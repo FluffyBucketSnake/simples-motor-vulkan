@@ -10,13 +10,6 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#pragma GCC diagnostic pop
-
 #include <vulkan/vulkan.hpp>
 
 namespace smv {
