@@ -31,6 +31,7 @@ class App {
         criarSwapchain();
         criarPasseDeRenderizacao();
         criarFramebuffers();
+        criarLayoutDaPipeline();
         carregarShaders();
         criarPipeline();
     }
@@ -415,6 +416,14 @@ class App {
         return dispositivo_.createFramebuffer(info);
     }
 
+    void criarLayoutDaPipeline() {
+        vk::PipelineLayoutCreateInfo info;
+        info.setLayoutCount = 0;
+        info.pushConstantRangeCount = 0;
+
+        layoutDaPipeline_ = dispositivo_.createPipelineLayout(info);
+    }
+
     void carregarShaders() {
         shaderDeVertices = carregarShader(kCaminhoShaderDeVertices);
         shaderDeFragmentos = carregarShader(kCaminhoShaderDeFragmento);
@@ -579,6 +588,7 @@ class App {
 
     vk::RenderPass passeDeRenderizacao_;
 
+    vk::PipelineLayout layoutDaPipeline_;
     const std::string kCaminhoShaderDeVertices = "shaders/shader.vert.spv";
     vk::ShaderModule shaderDeVertices;
     const std::string kCaminhoShaderDeFragmento = "shaders/shader.frag.spv";
