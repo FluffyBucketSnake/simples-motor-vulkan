@@ -475,6 +475,8 @@ class App {
         infoRasterizador.frontFace = vk::FrontFace::eCounterClockwise;
 
         vk::PipelineMultisampleStateCreateInfo infoAmostragem;
+        infoAmostragem.rasterizationSamples = vk::SampleCountFlagBits::e1;
+        infoAmostragem.sampleShadingEnable = false;
 
         vk::PipelineColorBlendStateCreateInfo infoMistura;
 
