@@ -482,6 +482,7 @@ class App {
         infoRasterizador.polygonMode = vk::PolygonMode::eFill;
         infoRasterizador.cullMode = vk::CullModeFlagBits::eBack;
         infoRasterizador.frontFace = vk::FrontFace::eCounterClockwise;
+        infoRasterizador.lineWidth = 1.0f;
 
         vk::PipelineMultisampleStateCreateInfo infoAmostragem;
         infoAmostragem.rasterizationSamples = vk::SampleCountFlagBits::e1;
