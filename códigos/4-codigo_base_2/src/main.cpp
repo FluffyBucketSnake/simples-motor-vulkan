@@ -398,10 +398,10 @@ class App {
             visoesDasImagensDaSwapchain_.begin(),
             visoesDasImagensDaSwapchain_.end(),
             std::back_inserter(framebuffers_),
-            [this](vk::ImageView i) { return criarFramebuffer(i); });
+            [this](const vk::ImageView& i) { return criarFramebuffer(i); });
     }
 
-    vk::Framebuffer criarFramebuffer(vk::ImageView imagemDaSwapchain) {
+    vk::Framebuffer criarFramebuffer(const vk::ImageView& imagemDaSwapchain) {
         vk::FramebufferCreateInfo info;
         info.renderPass = passeDeRenderizacao_;
         info.attachmentCount = 1;
