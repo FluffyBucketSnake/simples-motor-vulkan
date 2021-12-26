@@ -31,6 +31,7 @@ class App {
         criarSwapchain();
         criarPasseDeRenderizacao();
         criarFramebuffers();
+        carregarShaders();
     }
 
     void criarJanela() {
@@ -413,6 +414,30 @@ class App {
         return dispositivo_.createFramebuffer(info);
     }
 
+    void carregarShaders() {
+        shaderDeVertices = carregarShader(kCaminhoShaderDeVertices);
+        shaderDeFragmentos = carregarShader(kCaminhoShaderDeFragmento);
+    }
+
+    vk::ShaderModule carregarShader(const std::string& caminho) {
+        std::ifstream arquivoDoShader(caminho, std::ios::binary);
+
+        if (!arquivoDoShader.is_open()) {
+            throw std::runtime_error("Não foi possível abrir o arquivo '" +
+                                     caminho + "'!");
+        }
+
+        std::vector<char> codigoDoShader(
+            (std::istreambuf_iterator<char>(arquivoDoShader)),
+            (std::istreambuf_iterator<char>()));
+
+        vk::ShaderModuleCreateInfo info;
+        info.codeSize = codigoDoShader.size();
+        info.pCode = reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+
+        return dispositivo_.createShaderModule(info);
+    }
+
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
@@ -420,6 +445,8 @@ class App {
     }
 
     void destruir() {
+        dispositivo_.destroyShaderModule(shaderDeFragmentos);
+        dispositivo_.destroyShaderModule(shaderDeVertices);
         for (auto&& framebuffer : framebuffers_) {
             dispositivo_.destroyFramebuffer(framebuffer);
         }
@@ -470,6 +497,11 @@ class App {
     std::vector<vk::Framebuffer> framebuffers_;
 
     vk::RenderPass passeDeRenderizacao_;
+
+    const std::string kCaminhoShaderDeVertices = "shaders/shader.vert.spv";
+    vk::ShaderModule shaderDeVertices;
+    const std::string kCaminhoShaderDeFragmento = "shaders/shader.frag.spv";
+    vk::ShaderModule shaderDeFragmentos;
 };
 }  // namespace smv
 
