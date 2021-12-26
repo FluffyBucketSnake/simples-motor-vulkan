@@ -524,8 +524,11 @@ class App {
         info.pRasterizationState = &infoRasterizador;
         info.pMultisampleState = &infoAmostragem;
         info.pColorBlendState = &infoMistura;
+        info.layout = layoutDaPipeline_;
+        info.renderPass = passeDeRenderizacao_;
+        info.subpass = 0;
 
-        // pipeline_ = dispositivo_.createGraphicsPipeline({}, info);
+        pipeline_ = dispositivo_.createGraphicsPipeline({}, info);
     }
 
     void loopPrincipal() {
@@ -593,6 +596,7 @@ class App {
     vk::ShaderModule shaderDeVertices;
     const std::string kCaminhoShaderDeFragmento = "shaders/shader.frag.spv";
     vk::ShaderModule shaderDeFragmentos;
+    vk::Pipeline pipeline_;
 };
 }  // namespace smv
 
