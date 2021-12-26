@@ -30,6 +30,7 @@ class App {
         criarDispositivoLogicoEFilas();
         criarSwapchain();
         criarPasseDeRenderizacao();
+        criarFramebuffers();
     }
 
     void criarJanela() {
