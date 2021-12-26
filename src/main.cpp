@@ -470,6 +470,9 @@ class App {
         infoViewport.pScissors = &recorte;
 
         vk::PipelineRasterizationStateCreateInfo infoRasterizador;
+        infoRasterizador.polygonMode = vk::PolygonMode::eFill;
+        infoRasterizador.cullMode = vk::CullModeFlagBits::eBack;
+        infoRasterizador.frontFace = vk::FrontFace::eCounterClockwise;
 
         vk::PipelineMultisampleStateCreateInfo infoAmostragem;
 
