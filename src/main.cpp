@@ -455,7 +455,19 @@ class App {
         infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
         infoEntrada.primitiveRestartEnable = false;
 
+        vk::Viewport viewport = {
+            0.0f,
+            0.0f,
+            static_cast<float>(dimensoesDaSwapchain_.width),
+            static_cast<float>(dimensoesDaSwapchain_.height),
+            0.0f,
+            1.0f};
+        vk::Rect2D recorte = {{0, 0}, dimensoesDaSwapchain_};
         vk::PipelineViewportStateCreateInfo infoViewport;
+        infoViewport.viewportCount = 1;
+        infoViewport.pViewports = &viewport;
+        infoViewport.scissorCount = 1;
+        infoViewport.pScissors = &recorte;
 
         vk::PipelineRasterizationStateCreateInfo infoRasterizador;
 
