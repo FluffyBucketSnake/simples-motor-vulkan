@@ -28,6 +28,7 @@ class App {
         criarSuperficie();
         escolherDispositivoFisico();
         criarDispositivoLogicoEFilas();
+        criarPoolDeComandos();
         criarSwapchain();
         criarPasseDeRenderizacao();
         criarFramebuffers();
@@ -236,6 +237,13 @@ class App {
         }
 
         return std::distance(familias.begin(), familia);
+    }
+
+    void criarPoolDeComandos() {
+        vk::CommandPoolCreateInfo info;
+        info.queueFamilyIndex = familiaDeGraficos_;
+
+        poolDeComandos_ = dispositivo_.createCommandPool(info);
     }
 
     void criarSwapchain() {
@@ -551,6 +559,7 @@ class App {
             dispositivo_.destroyImageView(visao);
         }
         dispositivo_.destroySwapchainKHR(swapChain_);
+        dispositivo_.destroyCommandPool(poolDeComandos_);
         dispositivo_.destroy();
         instancia_.destroySurfaceKHR(superficie_);
         instancia_.destroy();
@@ -584,6 +593,8 @@ class App {
     vk::Queue filaDeGraficos_;
     uint32_t familiaDeApresentacao_;
     vk::Queue filaDeApresentacao_;
+
+    vk::CommandPool poolDeComandos_;
 
     vk::Format formatoDaSwapchain_;
     vk::Extent2D dimensoesDaSwapchain_;
