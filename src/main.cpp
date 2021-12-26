@@ -451,6 +451,9 @@ class App {
         
         vk::PipelineVertexInputStateCreateInfo infoVertices;
 
+        vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
+        infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
+        infoEntrada.primitiveRestartEnable = false;
 
         vk::GraphicsPipelineCreateInfo info;
         // info.flags = {}
