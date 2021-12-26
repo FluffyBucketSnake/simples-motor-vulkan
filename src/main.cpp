@@ -32,6 +32,7 @@ class App {
         criarPasseDeRenderizacao();
         criarFramebuffers();
         carregarShaders();
+        criarPipeline();
     }
 
     void criarJanela() {
@@ -436,6 +437,25 @@ class App {
         info.pCode = reinterpret_cast<const uint32_t*>(codigoDoShader.data());
 
         return dispositivo_.createShaderModule(info);
+    }
+
+    void criarPipeline() {
+        std::array<vk::PipelineShaderStageCreateInfo, 2> estagios{
+            vk::PipelineShaderStageCreateInfo{
+                {}, vk::ShaderStageFlagBits::eVertex, shaderDeVertices, "main"},
+            vk::PipelineShaderStageCreateInfo{
+                {},
+                vk::ShaderStageFlagBits::eFragment,
+                shaderDeFragmentos,
+                "main"}};
+        
+        vk::PipelineVertexInputStateCreateInfo infoVertices;
+
+
+        vk::GraphicsPipelineCreateInfo info;
+        // info.flags = {}
+        info.stageCount = static_cast<uint32_t>(estagios.size());
+        info.pStages = estagios.data();
     }
 
     void loopPrincipal() {
