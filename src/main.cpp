@@ -539,8 +539,10 @@ class App {
     }
 
     void destruir() {
+        dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(shaderDeFragmentos);
         dispositivo_.destroyShaderModule(shaderDeVertices);
+        dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
         for (auto&& framebuffer : framebuffers_) {
             dispositivo_.destroyFramebuffer(framebuffer);
         }
