@@ -448,7 +448,7 @@ class App {
                 vk::ShaderStageFlagBits::eFragment,
                 shaderDeFragmentos,
                 "main"}};
-        
+
         vk::PipelineVertexInputStateCreateInfo infoVertices;
 
         vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
@@ -478,7 +478,32 @@ class App {
         infoAmostragem.rasterizationSamples = vk::SampleCountFlagBits::e1;
         infoAmostragem.sampleShadingEnable = false;
 
+        vk::PipelineColorBlendAttachmentState misturaDoAnexoDeCor;
+        misturaDoAnexoDeCor.colorWriteMask =
+            vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+        misturaDoAnexoDeCor.blendEnable = false;
+
+        // Sobrescrita
+        // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eOne;
+        // misturaDoAnexoDeCor.dstColorBlendFactor = vk::BlendFactor::eZero;
+        // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
+
+        // Alpha blending
+        // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+        // misturaDoAnexoDeCor.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
+
         vk::PipelineColorBlendStateCreateInfo infoMistura;
+        infoMistura.logicOpEnable = false;
+        infoMistura.attachmentCount = 1;
+        infoMistura.pAttachments = &misturaDoAnexoDeCor;
 
         vk::GraphicsPipelineCreateInfo info;
         // info.flags = {}
