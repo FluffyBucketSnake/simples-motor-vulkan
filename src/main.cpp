@@ -455,10 +455,26 @@ class App {
         infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
         infoEntrada.primitiveRestartEnable = false;
 
+        vk::PipelineViewportStateCreateInfo infoViewport;
+
+        vk::PipelineRasterizationStateCreateInfo infoRasterizador;
+
+        vk::PipelineMultisampleStateCreateInfo infoAmostragem;
+
+        vk::PipelineColorBlendStateCreateInfo infoMistura;
+
         vk::GraphicsPipelineCreateInfo info;
         // info.flags = {}
         info.stageCount = static_cast<uint32_t>(estagios.size());
         info.pStages = estagios.data();
+        info.pVertexInputState = &infoVertices;
+        info.pInputAssemblyState = &infoEntrada;
+        info.pViewportState = &infoViewport;
+        info.pRasterizationState = &infoRasterizador;
+        info.pMultisampleState = &infoAmostragem;
+        info.pColorBlendState = &infoMistura;
+
+        // pipeline_ = dispositivo_.createGraphicsPipeline({}, info);
     }
 
     void loopPrincipal() {
