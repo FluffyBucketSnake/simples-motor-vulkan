@@ -35,6 +35,7 @@ class App {
         criarLayoutDaPipeline();
         carregarShaders();
         criarPipeline();
+        criarBuffersDeComandos();
     }
 
     void criarJanela() {
@@ -512,11 +513,12 @@ class App {
 
         // Alpha blending
         // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
-        // misturaDoAnexoDeCor.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
-        // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
-        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
-        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.dstColorBlendFactor =
+        // vk::BlendFactor::eOneMinusSrcAlpha; misturaDoAnexoDeCor.colorBlendOp
+        // = vk::BlendOp::eAdd; misturaDoAnexoDeCor.srcAlphaBlendFactor =
+        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor =
+        // vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
+        // vk::BlendOp::eAdd;
 
         vk::PipelineColorBlendStateCreateInfo infoMistura;
         infoMistura.logicOpEnable = false;
@@ -538,6 +540,47 @@ class App {
         info.subpass = 0;
 
         pipeline_ = dispositivo_.createGraphicsPipeline({}, info);
+    }
+
+    void criarBuffersDeComandos() {
+        uint32_t numDeImagens =
+            static_cast<uint32_t>(imagensDaSwapchain_.size());
+
+        vk::CommandBufferAllocateInfo info;
+        info.commandPool = poolDeComandos_;
+        info.commandBufferCount = numDeImagens;
+
+        buffersDeComandos_ = dispositivo_.allocateCommandBuffers(info);
+
+        for (size_t i = 0; i < numDeImagens; i++) {
+            gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
+        }
+    }
+
+    void gravarBufferDeComandos(vk::CommandBuffer bufferDeComandos,
+                                vk::Framebuffer framebuffer) {
+        vk::CommandBufferBeginInfo info;
+        bufferDeComandos.begin(info);
+
+        vk::ClearValue corDeLimpeza = {
+            vk::ClearColorValue{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}};
+
+        vk::RenderPassBeginInfo infoPasse;
+        infoPasse.renderPass = passeDeRenderizacao_;
+        infoPasse.framebuffer = framebuffer;
+        infoPasse.renderArea = {{0, 0}, dimensoesDaSwapchain_};
+        infoPasse.clearValueCount = 1;
+        infoPasse.pClearValues = &corDeLimpeza;
+        bufferDeComandos.beginRenderPass(infoPasse,
+                                         vk::SubpassContents::eInline);
+
+        bufferDeComandos.bindPipeline(vk::PipelineBindPoint::eGraphics,
+                                      pipeline_);
+        bufferDeComandos.draw(3, 1, 0, 0);
+
+        bufferDeComandos.endRenderPass();
+
+        bufferDeComandos.end();
     }
 
     void loopPrincipal() {
@@ -611,6 +654,8 @@ class App {
     const std::string kCaminhoShaderDeFragmento = "shaders/shader.frag.spv";
     vk::ShaderModule shaderDeFragmentos;
     vk::Pipeline pipeline_;
+
+    std::vector<vk::CommandBuffer> buffersDeComandos_;
 };
 }  // namespace smv
 
