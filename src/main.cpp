@@ -36,6 +36,7 @@ class App {
         carregarShaders();
         criarPipeline();
         criarBuffersDeComandos();
+        criarPrimitivosDeSincronizacao();
     }
 
     void criarJanela() {
@@ -568,7 +569,7 @@ class App {
         vk::RenderPassBeginInfo infoPasse;
         infoPasse.renderPass = passeDeRenderizacao_;
         infoPasse.framebuffer = framebuffer;
-        infoPasse.renderArea = {{0, 0}, dimensoesDaSwapchain_};
+        infoPasse.renderArea = vk::Rect2D{{0, 0}, dimensoesDaSwapchain_};
         infoPasse.clearValueCount = 1;
         infoPasse.pClearValues = &corDeLimpeza;
         bufferDeComandos.beginRenderPass(infoPasse,
@@ -583,13 +584,57 @@ class App {
         bufferDeComandos.end();
     }
 
+    void criarPrimitivosDeSincronizacao() {
+        vk::SemaphoreCreateInfo infoSemaforo;
+
+        semaforoDeImagemDisponivel_ =
+            dispositivo_.createSemaphore(infoSemaforo);
+        semaforoDeRenderizacaoCompleta_ =
+            dispositivo_.createSemaphore(infoSemaforo);
+    }
+
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
+            renderizar();
         }
+        dispositivo_.waitIdle();
+    }
+
+    void renderizar() {
+        uint32_t indiceDaImagem =
+            dispositivo_
+                .acquireNextImageKHR(swapChain_,
+                                     std::numeric_limits<uint64_t>::max(),
+                                     semaforoDeImagemDisponivel_, nullptr)
+                .value;
+
+        vk::PipelineStageFlags estagiosAEsperar =
+            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        vk::SubmitInfo infoSubmissao;
+        infoSubmissao.waitSemaphoreCount = 1;
+        infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivel_;
+        infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
+        infoSubmissao.commandBufferCount = 1;
+        infoSubmissao.pCommandBuffers = &buffersDeComandos_[indiceDaImagem];
+        infoSubmissao.signalSemaphoreCount = 1;
+        infoSubmissao.pSignalSemaphores = &semaforoDeRenderizacaoCompleta_;
+
+        filaDeGraficos_.submit(infoSubmissao, nullptr);
+
+        vk::PresentInfoKHR infoApresentacao;
+        infoApresentacao.waitSemaphoreCount = 1;
+        infoApresentacao.pWaitSemaphores = &semaforoDeRenderizacaoCompleta_;
+        infoApresentacao.swapchainCount = 1;
+        infoApresentacao.pSwapchains = &swapChain_;
+        infoApresentacao.pImageIndices = &indiceDaImagem;
+
+        filaDeApresentacao_.presentKHR(infoApresentacao);
     }
 
     void destruir() {
+        dispositivo_.destroySemaphore(semaforoDeRenderizacaoCompleta_);
+        dispositivo_.destroySemaphore(semaforoDeImagemDisponivel_);
         dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(shaderDeFragmentos);
         dispositivo_.destroyShaderModule(shaderDeVertices);
@@ -656,6 +701,9 @@ class App {
     vk::Pipeline pipeline_;
 
     std::vector<vk::CommandBuffer> buffersDeComandos_;
+
+    vk::Semaphore semaforoDeImagemDisponivel_;
+    vk::Semaphore semaforoDeRenderizacaoCompleta_;
 };
 }  // namespace smv
 
