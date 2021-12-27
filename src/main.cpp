@@ -302,6 +302,7 @@ class App {
             visoesDasImagensDaSwapchain_.push_back(
                 criarVisaoDeImagem(imagem, formatoDaSwapchain_));
         }
+        imagensEmExecucao_.resize(imagensDaSwapchain_.size());
     }
 
     vk::SurfaceFormatKHR escolherFormatoDaSwapchain(
@@ -585,12 +586,27 @@ class App {
     }
 
     void criarPrimitivosDeSincronizacao() {
-        vk::SemaphoreCreateInfo infoSemaforo;
+        std::generate(semaforosDeImagemDisponivel_.begin(),
+                      semaforosDeImagemDisponivel_.end(),
+                      [this]() { return criarSemaforo(); });
+        std::generate(semaforosDeRenderizacaoCompleta_.begin(),
+                      semaforosDeRenderizacaoCompleta_.end(),
+                      [this]() { return criarSemaforo(); });
+        std::generate(cercasDeQuadros_.begin(), cercasDeQuadros_.end(),
+                      [this]() {
+                          return criarCerca(vk::FenceCreateFlagBits::eSignaled);
+                      });
+    }
 
-        semaforoDeImagemDisponivel_ =
-            dispositivo_.createSemaphore(infoSemaforo);
-        semaforoDeRenderizacaoCompleta_ =
-            dispositivo_.createSemaphore(infoSemaforo);
+    vk::Semaphore criarSemaforo() {
+        vk::SemaphoreCreateInfo infoSemaforo;
+        return dispositivo_.createSemaphore(infoSemaforo);
+    }
+
+    vk::Fence criarCerca(vk::FenceCreateFlags flags) {
+        vk::FenceCreateInfo info;
+        info.flags = flags;
+        return dispositivo_.createFence(info);
     }
 
     void loopPrincipal() {
@@ -602,29 +618,47 @@ class App {
     }
 
     void renderizar() {
+        auto cercaAtual = cercasDeQuadros_[quadroAtual_];
+        auto semaforoDeImagemDisponivelAtual =
+            semaforosDeImagemDisponivel_[quadroAtual_];
+        auto semaforoDeRenderizacaoCompletaAtual =
+            semaforosDeRenderizacaoCompleta_[quadroAtual_];
+
+        dispositivo_.waitForFences(cercaAtual, false,
+                                   std::numeric_limits<uint64_t>::max());
+
         uint32_t indiceDaImagem =
             dispositivo_
                 .acquireNextImageKHR(swapChain_,
                                      std::numeric_limits<uint64_t>::max(),
-                                     semaforoDeImagemDisponivel_, nullptr)
+                                     semaforoDeImagemDisponivelAtual, nullptr)
                 .value;
+
+        auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
+        if (cercaDaImagemAtual.has_value()) {
+            dispositivo_.waitForFences(cercaDaImagemAtual.value(), false,
+                                       std::numeric_limits<uint64_t>::max());
+        }
+        cercaDaImagemAtual = cercaAtual;
+
+        dispositivo_.resetFences(cercaAtual);
 
         vk::PipelineStageFlags estagiosAEsperar =
             vk::PipelineStageFlagBits::eColorAttachmentOutput;
         vk::SubmitInfo infoSubmissao;
         infoSubmissao.waitSemaphoreCount = 1;
-        infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivel_;
+        infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivelAtual;
         infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
         infoSubmissao.commandBufferCount = 1;
         infoSubmissao.pCommandBuffers = &buffersDeComandos_[indiceDaImagem];
         infoSubmissao.signalSemaphoreCount = 1;
-        infoSubmissao.pSignalSemaphores = &semaforoDeRenderizacaoCompleta_;
+        infoSubmissao.pSignalSemaphores = &semaforoDeRenderizacaoCompletaAtual;
 
-        filaDeGraficos_.submit(infoSubmissao, nullptr);
+        filaDeGraficos_.submit(infoSubmissao, cercaAtual);
 
         vk::PresentInfoKHR infoApresentacao;
         infoApresentacao.waitSemaphoreCount = 1;
-        infoApresentacao.pWaitSemaphores = &semaforoDeRenderizacaoCompleta_;
+        infoApresentacao.pWaitSemaphores = &semaforoDeRenderizacaoCompletaAtual;
         infoApresentacao.swapchainCount = 1;
         infoApresentacao.pSwapchains = &swapChain_;
         infoApresentacao.pImageIndices = &indiceDaImagem;
@@ -633,8 +667,15 @@ class App {
     }
 
     void destruir() {
-        dispositivo_.destroySemaphore(semaforoDeRenderizacaoCompleta_);
-        dispositivo_.destroySemaphore(semaforoDeImagemDisponivel_);
+        for (auto&& cerca : cercasDeQuadros_) {
+            dispositivo_.destroyFence(cerca);
+        }
+        for (auto&& semaforo : semaforosDeRenderizacaoCompleta_) {
+            dispositivo_.destroySemaphore(semaforo);
+        }
+        for (auto&& semaforo : semaforosDeImagemDisponivel_) {
+            dispositivo_.destroySemaphore(semaforo);
+        }
         dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(shaderDeFragmentos);
         dispositivo_.destroyShaderModule(shaderDeVertices);
@@ -702,8 +743,14 @@ class App {
 
     std::vector<vk::CommandBuffer> buffersDeComandos_;
 
-    vk::Semaphore semaforoDeImagemDisponivel_;
-    vk::Semaphore semaforoDeRenderizacaoCompleta_;
+    size_t quadroAtual_ = 0;
+    static const size_t kMaximoQuadrosEmExecucao = 2;
+    std::array<vk::Semaphore, kMaximoQuadrosEmExecucao>
+        semaforosDeImagemDisponivel_;
+    std::array<vk::Semaphore, kMaximoQuadrosEmExecucao>
+        semaforosDeRenderizacaoCompleta_;
+    std::array<vk::Fence, kMaximoQuadrosEmExecucao> cercasDeQuadros_;
+    std::vector<std::optional<vk::Fence>> imagensEmExecucao_;
 };
 }  // namespace smv
 
