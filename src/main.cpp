@@ -473,7 +473,6 @@ class App {
 
         vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
         infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
-        infoEntrada.primitiveRestartEnable = false;
 
         vk::Viewport viewport = {
             0.0f,
@@ -496,8 +495,6 @@ class App {
         infoRasterizador.lineWidth = 1.0f;
 
         vk::PipelineMultisampleStateCreateInfo infoAmostragem;
-        infoAmostragem.rasterizationSamples = vk::SampleCountFlagBits::e1;
-        infoAmostragem.sampleShadingEnable = false;
 
         vk::PipelineColorBlendAttachmentState misturaDoAnexoDeCor;
         misturaDoAnexoDeCor.colorWriteMask =
