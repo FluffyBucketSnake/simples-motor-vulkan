@@ -541,16 +541,16 @@ class App {
     }
 
     void criarBuffersDeComandos() {
-        uint32_t numDeImagens =
-            static_cast<uint32_t>(imagensDaSwapchain_.size());
+        uint32_t numDeFramebuffers =
+            static_cast<uint32_t>(framebuffers_.size());
 
         vk::CommandBufferAllocateInfo info;
         info.commandPool = poolDeComandos_;
-        info.commandBufferCount = numDeImagens;
+        info.commandBufferCount = numDeFramebuffers;
 
         buffersDeComandos_ = dispositivo_.allocateCommandBuffers(info);
 
-        for (size_t i = 0; i < numDeImagens; i++) {
+        for (size_t i = 0; i < numDeFramebuffers; i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
     }
