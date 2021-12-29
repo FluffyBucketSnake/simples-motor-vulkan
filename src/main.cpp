@@ -520,7 +520,6 @@ class App {
         // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
 
         vk::PipelineColorBlendStateCreateInfo infoMistura;
-        infoMistura.logicOpEnable = false;
         infoMistura.attachmentCount = 1;
         infoMistura.pAttachments = &misturaDoAnexoDeCor;
 
