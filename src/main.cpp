@@ -660,6 +660,8 @@ class App {
         infoApresentacao.pImageIndices = &indiceDaImagem;
 
         filaDeApresentacao_.presentKHR(infoApresentacao);
+
+        quadroAtual_ = (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
     }
 
     void destruir() {
