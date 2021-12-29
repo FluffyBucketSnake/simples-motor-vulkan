@@ -513,11 +513,11 @@ class App {
         // Alpha blending
         // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
         // misturaDoAnexoDeCor.dstColorBlendFactor =
-        // vk::BlendFactor::eOneMinusSrcAlpha; misturaDoAnexoDeCor.colorBlendOp
-        // = vk::BlendOp::eAdd; misturaDoAnexoDeCor.srcAlphaBlendFactor =
-        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor =
-        // vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
-        // vk::BlendOp::eAdd;
+        //     vk::BlendFactor::eOneMinusSrcAlpha;
+        // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
 
         vk::PipelineColorBlendStateCreateInfo infoMistura;
         infoMistura.logicOpEnable = false;
