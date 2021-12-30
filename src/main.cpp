@@ -396,13 +396,24 @@ class App {
         // subpasse.preserveAttachmentCount = 0;
         // subpasse.pPreserveAttachments = nullptr;
 
+        vk::SubpassDependency dependenciaAnexoDeCor;
+        dependenciaAnexoDeCor.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependenciaAnexoDeCor.dstSubpass = 0;
+        dependenciaAnexoDeCor.srcStageMask =
+            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependenciaAnexoDeCor.dstStageMask =
+            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependenciaAnexoDeCor.srcAccessMask = {};
+        dependenciaAnexoDeCor.dstAccessMask =
+            vk::AccessFlagBits::eColorAttachmentWrite;
+
         vk::RenderPassCreateInfo info;
         info.attachmentCount = 1;
         info.pAttachments = &anexoCor;
         info.subpassCount = 1;
         info.pSubpasses = &subpasse;
-        // info.dependencyCount = 0;
-        // info.pDependencies = nullptr;
+        info.dependencyCount = 1;
+        info.pDependencies = &dependenciaAnexoDeCor;
 
         passeDeRenderizacao_ = dispositivo_.createRenderPass(info);
     }
