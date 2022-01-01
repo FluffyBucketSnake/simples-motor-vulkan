@@ -632,9 +632,9 @@ class App {
                              vk::DeviceMemory& memoria) {
         vk::Buffer bufferDePreparo;
         vk::DeviceMemory memoriaBufferDePreparo;
-        size_t tamanho;
+        size_t tamanho = kVertices.size() * sizeof(T);
 
-        criarBuffer(vk::BufferUsageFlagBits::eTransferSrc,
+        criarBuffer(vk::BufferUsageFlagBits::eTransferSrc, tamanho,
                     vk::MemoryPropertyFlagBits::eHostCoherent |
                         vk::MemoryPropertyFlagBits::eHostVisible,
                     bufferDePreparo, memoriaBufferDePreparo);
@@ -655,7 +655,7 @@ class App {
         infoCopia.size = tamanho;
         comando.copyBuffer(bufferDePreparo, buffer, infoCopia);
 
-        finalizarComandoDeUsoUnico();
+        finalizarComandoDeUsoUnico(comando);
 
         dispositivo_.destroyBuffer(bufferDePreparo);
         dispositivo_.freeMemory(memoriaBufferDePreparo);
