@@ -611,7 +611,11 @@ class App {
         bufferDeComandos.bindPipeline(vk::PipelineBindPoint::eGraphics,
                                       pipeline_);
         bufferDeComandos.bindVertexBuffers(0, bufferDeVertices_, {0});
-        bufferDeComandos.draw(static_cast<uint32_t>(kVertices.size()), 1, 0, 0);
+        bufferDeComandos.bindIndexBuffer(bufferDeIndices_, 0,
+                                         vk::IndexType::eUint16);
+
+        uint32_t numIndices = static_cast<uint32_t>(kIndices.size());
+        bufferDeComandos.drawIndexed(numIndices, 1, 0, 0, 0);
 
         bufferDeComandos.endRenderPass();
 
@@ -645,6 +649,8 @@ class App {
     void carregarRecursos() {
         criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer, kVertices,
                             bufferDeVertices_, memoriaBufferDeVertices_);
+        criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, kIndices,
+                            bufferDeIndices_, memoriaBufferDeIndices_);
 
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
@@ -918,11 +924,13 @@ class App {
     std::vector<Vertice> kVertices = {{{-0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
                                       {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
                                       {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-                                      {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-                                      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-                                      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}};
+                                      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
+
+    std::vector<uint16_t> kIndices = {0u, 1u, 2u, 1u, 3u, 2u};
+    vk::Buffer bufferDeIndices_;
+    vk::DeviceMemory memoriaBufferDeIndices_;
 };
 }  // namespace smv
 
