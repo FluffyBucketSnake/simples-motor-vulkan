@@ -19,6 +19,7 @@ class App {
   public:
     void rodar() {
         iniciar();
+        carregarRecursos();
         loopPrincipal();
         destruir();
     }
@@ -618,6 +619,10 @@ class App {
         return dispositivo_.createFence(info);
     }
 
+    void carregarRecursos() {
+    }
+
+    }
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
