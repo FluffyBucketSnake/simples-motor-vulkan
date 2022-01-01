@@ -620,6 +620,44 @@ class App {
     }
 
     void carregarRecursos() {
+    }
+
+    template <typename T>
+    void criarBufferImutavel(vk::BufferUsageFlags usos,
+                             std::vector<T> dados,
+                             vk::Buffer& buffer,
+                             vk::DeviceMemory& memoria) {
+        vk::Buffer bufferDePreparo;
+        vk::DeviceMemory memoriaBufferDePreparo;
+        size_t tamanho;
+
+        criarBuffer(vk::BufferUsageFlagBits::eTransferSrc,
+                    vk::MemoryPropertyFlagBits::eHostCoherent |
+                        vk::MemoryPropertyFlagBits::eHostVisible,
+                    bufferDePreparo, memoriaBufferDePreparo);
+
+        void* dstDados =
+            dispositivo_.mapMemory(memoriaBufferDePreparo, 0, tamanho);
+        std::memcpy(dstDados, dados.data(), tamanho);
+        dispositivo_.unmapMemory(memoriaBufferDePreparo);
+
+        criarBuffer(usos | vk::BufferUsageFlagBits::eTransferDst, tamanho,
+                    vk::MemoryPropertyFlagBits::eDeviceLocal, buffer, memoria);
+
+        auto comando = iniciarComandoDeUsoUnico();
+
+        vk::BufferCopy infoCopia;
+        infoCopia.srcOffset = 0;
+        infoCopia.dstOffset = 0;
+        infoCopia.size = tamanho;
+        comando.copyBuffer(bufferDePreparo, buffer, infoCopia);
+
+        finalizarComandoDeUsoUnico();
+
+        dispositivo_.destroyBuffer(bufferDePreparo);
+        dispositivo_.freeMemory(memoriaBufferDePreparo);
+    }
+
     void criarBuffer(vk::BufferUsageFlags usos,
                      size_t tamanho,
                      vk::MemoryPropertyFlags propriedades,
