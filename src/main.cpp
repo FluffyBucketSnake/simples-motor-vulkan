@@ -588,7 +588,8 @@ class App {
 
         bufferDeComandos.bindPipeline(vk::PipelineBindPoint::eGraphics,
                                       pipeline_);
-        bufferDeComandos.draw(3, 1, 0, 0);
+        bufferDeComandos.bindVertexBuffers(0, bufferDeVertices_, {0});
+        bufferDeComandos.draw(static_cast<uint32_t>(kVertices.size()), 1, 0, 0);
 
         bufferDeComandos.endRenderPass();
 
@@ -620,6 +621,8 @@ class App {
     }
 
     void carregarRecursos() {
+        criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer, kVertices,
+                            bufferDeVertices_, memoriaBufferDeVertices_);
     }
 
     template <typename T>
@@ -799,6 +802,8 @@ class App {
     }
 
     void destruir() {
+        dispositivo_.destroyBuffer(bufferDeVertices_);
+        dispositivo_.freeMemory(memoriaBufferDeVertices_);
         for (auto&& cerca : cercasDeQuadros_) {
             dispositivo_.destroyFence(cerca);
         }
@@ -884,9 +889,11 @@ class App {
     std::array<vk::Fence, kMaximoQuadrosEmExecucao> cercasDeQuadros_;
     std::vector<std::optional<vk::Fence>> imagensEmExecucao_;
 
-    std::vector<glm::vec3> kVertices = {
-        {-0.5f, -0.5f, 0.0f}, {-0.5f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0f},
-        {-0.5f, 0.5f, 0.0f},  {0.5f, 0.5f, 0.0f},  {0.5f, -0.5f, 0.0f}};
+    std::vector<glm::vec2> kVertices = {{-0.5f, -0.5f}, {-0.5f, 0.5f},
+                                        {0.5f, -0.5f},  {-0.5f, 0.5f},
+                                        {0.5f, 0.5f},   {0.5f, -0.5f}};
+    vk::Buffer bufferDeVertices_;
+    vk::DeviceMemory memoriaBufferDeVertices_;
 };
 }  // namespace smv
 
