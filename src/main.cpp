@@ -15,6 +15,20 @@
 #include <vulkan/vulkan.hpp>
 
 namespace smv {
+struct Vertice {
+    glm::vec2 posicao;
+    glm::vec3 cor;
+
+    static std::array<vk::VertexInputAttributeDescription, 2>
+    descricaoDeAtributos() {
+        return {
+            vk::VertexInputAttributeDescription{0, 0, vk::Format::eR32G32Sfloat,
+                                                offsetof(Vertice, posicao)},
+            vk::VertexInputAttributeDescription{
+                1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, cor)}};
+    }
+};
+
 class App {
   public:
     void rodar() {
@@ -485,20 +499,17 @@ class App {
 
         vk::VertexInputBindingDescription descricaoDeAssociacao;
         descricaoDeAssociacao.binding = 0;
-        descricaoDeAssociacao.stride = sizeof(glm::vec2);
+        descricaoDeAssociacao.stride = sizeof(Vertice);
         descricaoDeAssociacao.inputRate = vk::VertexInputRate::eVertex;
 
-        vk::VertexInputAttributeDescription atributoDeVertice;
-        atributoDeVertice.location = 0;
-        atributoDeVertice.binding = 0;
-        atributoDeVertice.format = vk::Format::eR32G32Sfloat;
-        atributoDeVertice.offset = 0;
+        auto atributosDosVertices = Vertice::descricaoDeAtributos();
 
         vk::PipelineVertexInputStateCreateInfo infoVertices;
         infoVertices.vertexBindingDescriptionCount = 1;
         infoVertices.pVertexBindingDescriptions = &descricaoDeAssociacao;
-        infoVertices.vertexAttributeDescriptionCount = 1;
-        infoVertices.pVertexAttributeDescriptions = &atributoDeVertice;
+        infoVertices.vertexAttributeDescriptionCount =
+            static_cast<uint32_t>(atributosDosVertices.size());
+        infoVertices.pVertexAttributeDescriptions = atributosDosVertices.data();
 
         vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
         infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
@@ -904,9 +915,12 @@ class App {
     std::array<vk::Fence, kMaximoQuadrosEmExecucao> cercasDeQuadros_;
     std::vector<std::optional<vk::Fence>> imagensEmExecucao_;
 
-    std::vector<glm::vec2> kVertices = {{-0.5f, -0.5f}, {-0.5f, 0.5f},
-                                        {0.5f, -0.5f},  {-0.5f, 0.5f},
-                                        {0.5f, 0.5f},   {0.5f, -0.5f}};
+    std::vector<Vertice> kVertices = {{{-0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+                                      {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+                                      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+                                      {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+                                      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+                                      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 };
