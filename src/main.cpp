@@ -658,7 +658,7 @@ class App {
                              vk::DeviceMemory& memoria) {
         vk::Buffer bufferDePreparo;
         vk::DeviceMemory memoriaBufferDePreparo;
-        size_t tamanho = kVertices.size() * sizeof(T);
+        size_t tamanho = dados.size() * sizeof(T);
 
         criarBuffer(vk::BufferUsageFlagBits::eTransferSrc, tamanho,
                     vk::MemoryPropertyFlagBits::eHostCoherent |
