@@ -483,7 +483,22 @@ class App {
                 shaderDeFragmentos,
                 "main"}};
 
+        vk::VertexInputBindingDescription descricaoDeAssociacao;
+        descricaoDeAssociacao.binding = 0;
+        descricaoDeAssociacao.stride = sizeof(glm::vec2);
+        descricaoDeAssociacao.inputRate = vk::VertexInputRate::eVertex;
+
+        vk::VertexInputAttributeDescription atributoDeVertice;
+        atributoDeVertice.location = 0;
+        atributoDeVertice.binding = 0;
+        atributoDeVertice.format = vk::Format::eR32G32Sfloat;
+        atributoDeVertice.offset = 0;
+
         vk::PipelineVertexInputStateCreateInfo infoVertices;
+        infoVertices.vertexBindingDescriptionCount = 1;
+        infoVertices.pVertexBindingDescriptions = &descricaoDeAssociacao;
+        infoVertices.vertexAttributeDescriptionCount = 1;
+        infoVertices.pVertexAttributeDescriptions = &atributoDeVertice;
 
         vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
         infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
