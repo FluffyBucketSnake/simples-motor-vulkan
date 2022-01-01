@@ -620,9 +620,87 @@ class App {
     }
 
     void carregarRecursos() {
+    void criarBuffer(vk::BufferUsageFlags usos,
+                     size_t tamanho,
+                     vk::MemoryPropertyFlags propriedades,
+                     vk::Buffer& buffer,
+                     vk::DeviceMemory& memoria) {
+        vk::BufferCreateInfo infoBuffer;
+        // infoBuffer.flags = {};
+        infoBuffer.size = tamanho;
+        infoBuffer.usage = usos;
+        infoBuffer.sharingMode = vk::SharingMode::eExclusive;
+        // infoBuffer.queueFamilyIndexCount = 0;
+        // infoBuffer.pQueueFamilyIndices = nullptr;
+
+        buffer = dispositivo_.createBuffer(infoBuffer);
+
+        auto requisitosDeMemoria =
+            dispositivo_.getBufferMemoryRequirements(buffer);
+        auto tipoDeMemoria = buscarTipoDeMemoria(
+            requisitosDeMemoria.memoryTypeBits, propriedades);
+
+        memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
+
+        dispositivo_.bindBufferMemory(buffer, memoria, 0);
     }
 
+    vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
+        vk::MemoryAllocateInfo infoAlloc;
+        infoAlloc.allocationSize = tamanho;
+        infoAlloc.memoryTypeIndex = tipoDeMemoria;
+
+        return dispositivo_.allocateMemory(infoAlloc);
     }
+
+    uint32_t buscarTipoDeMemoria(uint32_t filtro,
+                                 vk::MemoryPropertyFlags propriedades) {
+        auto tiposDeMemorias = dispositivoFisico_.getMemoryProperties();
+        for (uint32_t i = 0; i < tiposDeMemorias.memoryTypeCount; i++) {
+            const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
+
+            bool passaPeloFiltro = (1u << i) & filtro;
+            bool possuiAsPropriedades =
+                (tipoDeMemoria.propertyFlags & propriedades) == propriedades;
+
+            if (passaPeloFiltro && possuiAsPropriedades) {
+                return i;
+            }
+        }
+
+        throw std::runtime_error(
+            "Não foi encontrada um tipo de memória adequado.");
+    }
+
+    vk::CommandBuffer iniciarComandoDeUsoUnico() {
+        vk::CommandBufferAllocateInfo infoAlloc;
+        infoAlloc.commandPool = poolDeComandos_;
+        infoAlloc.commandBufferCount = 1;
+
+        vk::CommandBuffer comando =
+            dispositivo_.allocateCommandBuffers(infoAlloc)[0];
+
+        vk::CommandBufferBeginInfo infoBegin;
+        infoBegin.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+        comando.begin(infoBegin);
+
+        return comando;
+    }
+
+    void finalizarComandoDeUsoUnico(vk::CommandBuffer comando) {
+        comando.end();
+
+        vk::SubmitInfo infoSubmit;
+        infoSubmit.commandBufferCount = 1;
+        infoSubmit.pCommandBuffers = &comando;
+
+        filaDeGraficos_.submit(infoSubmit, nullptr);
+        filaDeGraficos_.waitIdle();
+
+        dispositivo_.freeCommandBuffers(poolDeComandos_, {comando});
+    }
+
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
