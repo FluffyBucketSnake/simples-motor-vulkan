@@ -10,6 +10,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+
 #include <vulkan/vulkan.hpp>
 
 namespace smv {
@@ -760,6 +762,10 @@ class App {
         semaforosDeRenderizacaoCompleta_;
     std::array<vk::Fence, kMaximoQuadrosEmExecucao> cercasDeQuadros_;
     std::vector<std::optional<vk::Fence>> imagensEmExecucao_;
+
+    std::vector<glm::vec3> kVertices = {
+        {-0.5f, -0.5f, 0.0f}, {-0.5f, 0.5f, 0.0f}, {0.5f, -0.5f, 0.0f},
+        {-0.5f, 0.5f, 0.0f},  {0.5f, 0.5f, 0.0f},  {0.5f, -0.5f, 0.0f}};
 };
 }  // namespace smv
 
