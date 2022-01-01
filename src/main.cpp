@@ -563,10 +563,6 @@ class App {
         info.commandBufferCount = numDeFramebuffers;
 
         buffersDeComandos_ = dispositivo_.allocateCommandBuffers(info);
-
-        for (size_t i = 0; i < numDeFramebuffers; i++) {
-            gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
-        }
     }
 
     void gravarBufferDeComandos(vk::CommandBuffer bufferDeComandos,
@@ -623,6 +619,10 @@ class App {
     void carregarRecursos() {
         criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer, kVertices,
                             bufferDeVertices_, memoriaBufferDeVertices_);
+
+        for (size_t i = 0; i < framebuffers_.size(); i++) {
+            gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
+        }
     }
 
     template <typename T>
