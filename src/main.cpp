@@ -662,9 +662,17 @@ class App {
                              std::vector<T> dados,
                              vk::Buffer& buffer,
                              vk::DeviceMemory& memoria) {
+        size_t tamanho = dados.size() * sizeof(T);
+
+        criarBuffer(usos | vk::BufferUsageFlagBits::eTransferDst, tamanho,
+                    vk::MemoryPropertyFlagBits::eDeviceLocal, buffer, memoria);
+
+        atualizarBuffer(buffer, tamanho, dados.data());
+    }
+
+    void atualizarBuffer(vk::Buffer buffer, size_t tamanho, void* dados) {
         vk::Buffer bufferDePreparo;
         vk::DeviceMemory memoriaBufferDePreparo;
-        size_t tamanho = dados.size() * sizeof(T);
 
         criarBuffer(vk::BufferUsageFlagBits::eTransferSrc, tamanho,
                     vk::MemoryPropertyFlagBits::eHostCoherent |
@@ -673,11 +681,8 @@ class App {
 
         void* dstDados =
             dispositivo_.mapMemory(memoriaBufferDePreparo, 0, tamanho);
-        std::memcpy(dstDados, dados.data(), tamanho);
+        std::memcpy(dstDados, dados, tamanho);
         dispositivo_.unmapMemory(memoriaBufferDePreparo);
-
-        criarBuffer(usos | vk::BufferUsageFlagBits::eTransferDst, tamanho,
-                    vk::MemoryPropertyFlagBits::eDeviceLocal, buffer, memoria);
 
         auto comando = iniciarComandoDeUsoUnico();
 
