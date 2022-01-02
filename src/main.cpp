@@ -10,7 +10,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <vulkan/vulkan.hpp>
 
@@ -27,6 +29,10 @@ struct Vertice {
             vk::VertexInputAttributeDescription{
                 1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, cor)}};
     }
+};
+
+struct OBU {
+    glm::mat4 transformacao;
 };
 
 class App {
@@ -652,6 +658,16 @@ class App {
         criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, kIndices,
                             bufferDeIndices_, memoriaBufferDeIndices_);
 
+        obu_.transformacao = glm::perspectiveFov(
+            glm::radians(90.0f),
+            static_cast<float>(dimensoesDaSwapchain_.width),
+            static_cast<float>(dimensoesDaSwapchain_.height), 0.01f, 100.0f);
+        criarBuffer(vk::BufferUsageFlagBits::eUniformBuffer |
+                        vk::BufferUsageFlagBits::eTransferDst,
+                    sizeof(OBU), vk::MemoryPropertyFlagBits::eDeviceLocal,
+                    bufferDoOBU_, memoriaBufferDoOBU_);
+        atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
+
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
@@ -839,6 +855,10 @@ class App {
     }
 
     void destruir() {
+        dispositivo_.destroyBuffer(bufferDoOBU_);
+        dispositivo_.freeMemory(memoriaBufferDoOBU_);
+        dispositivo_.destroyBuffer(bufferDeIndices_);
+        dispositivo_.freeMemory(memoriaBufferDeIndices_);
         dispositivo_.destroyBuffer(bufferDeVertices_);
         dispositivo_.freeMemory(memoriaBufferDeVertices_);
         for (auto&& cerca : cercasDeQuadros_) {
@@ -936,6 +956,10 @@ class App {
     std::vector<uint16_t> kIndices = {0u, 1u, 2u, 1u, 3u, 2u};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
+
+    OBU obu_;
+    vk::Buffer bufferDoOBU_;
+    vk::DeviceMemory memoriaBufferDoOBU_;
 };
 }  // namespace smv
 
