@@ -33,7 +33,9 @@ struct Vertice {
 };
 
 struct OBU {
-    glm::mat4 transformacao;
+    glm::mat4 modelo;
+    glm::mat4 visao;
+    glm::mat4 projecao;
 };
 
 class App {
