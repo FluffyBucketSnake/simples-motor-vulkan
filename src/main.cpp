@@ -64,6 +64,7 @@ class App {
         criarPipeline();
         criarBuffersDeComandos();
         criarPrimitivosDeSincronizacao();
+        criarPoolDeDescritores();
     }
 
     void criarJanela() {
@@ -671,6 +672,18 @@ class App {
         return dispositivo_.createFence(info);
     }
 
+    void criarPoolDeDescritores() {
+        std::array<vk::DescriptorPoolSize, 1> tamanhos = {
+            vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 1}};
+
+        vk::DescriptorPoolCreateInfo info;
+        info.maxSets = 1;
+        info.poolSizeCount = static_cast<uint32_t>(tamanhos.size());
+        info.pPoolSizes = tamanhos.data();
+
+        poolDeDescritores_ = dispositivo_.createDescriptorPool(info);
+    }
+
     void carregarRecursos() {
         criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer, kVertices,
                             bufferDeVertices_, memoriaBufferDeVertices_);
@@ -880,6 +893,7 @@ class App {
         dispositivo_.freeMemory(memoriaBufferDeIndices_);
         dispositivo_.destroyBuffer(bufferDeVertices_);
         dispositivo_.freeMemory(memoriaBufferDeVertices_);
+        dispositivo_.destroyDescriptorPool(poolDeDescritores_);
         for (auto&& cerca : cercasDeQuadros_) {
             dispositivo_.destroyFence(cerca);
         }
