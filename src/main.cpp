@@ -636,6 +636,9 @@ class App {
 
         bufferDeComandos.bindPipeline(vk::PipelineBindPoint::eGraphics,
                                       pipeline_);
+        bufferDeComandos.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                            layoutDaPipeline_, 0,
+                                            setDeDescritores_, {});
         bufferDeComandos.bindVertexBuffers(0, bufferDeVertices_, {0});
         bufferDeComandos.bindIndexBuffer(bufferDeIndices_, 0,
                                          vk::IndexType::eUint16);
@@ -705,6 +708,8 @@ class App {
             static_cast<float>(dimensoesDaSwapchain_.height), 0.01f, 100.0f);
         obu_.projecao[1][1] *= -1;
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
+
+        criarSetsDeDescritores();
 
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
@@ -831,6 +836,28 @@ class App {
         filaDeGraficos_.waitIdle();
 
         dispositivo_.freeCommandBuffers(poolDeComandos_, {comando});
+    }
+
+    void criarSetsDeDescritores() {
+        vk::DescriptorSetAllocateInfo infoAloc;
+        infoAloc.descriptorPool = poolDeDescritores_;
+        infoAloc.descriptorSetCount = 1;
+        infoAloc.pSetLayouts = &layoutDoSetDeDescritores_;
+
+        setDeDescritores_ = dispositivo_.allocateDescriptorSets(infoAloc)[0];
+
+        vk::DescriptorBufferInfo infoOBU = {bufferDoOBU_, 0, sizeof(OBU)};
+
+        std::array<vk::WriteDescriptorSet, 1> escreverOBU = {
+            vk::WriteDescriptorSet{setDeDescritores_,
+                                   0,
+                                   0,
+                                   1,
+                                   vk::DescriptorType::eUniformBuffer,
+                                   {},
+                                   &infoOBU}};
+
+        dispositivo_.updateDescriptorSets(escreverOBU, {});
     }
 
     void loopPrincipal() {
@@ -986,6 +1013,9 @@ class App {
         semaforosDeRenderizacaoCompleta_;
     std::array<vk::Fence, kMaximoQuadrosEmExecucao> cercasDeQuadros_;
     std::vector<std::optional<vk::Fence>> imagensEmExecucao_;
+
+    vk::DescriptorPool poolDeDescritores_;
+    vk::DescriptorSet setDeDescritores_;
 
     std::vector<Vertice> kVertices = {{{-0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
                                       {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
