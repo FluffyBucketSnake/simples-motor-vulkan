@@ -58,6 +58,7 @@ class App {
         criarSwapchain();
         criarPasseDeRenderizacao();
         criarFramebuffers();
+        criarLayoutsDosSetsDeDescritores();
         criarLayoutDaPipeline();
         carregarShaders();
         criarPipeline();
@@ -464,9 +465,24 @@ class App {
         return dispositivo_.createFramebuffer(info);
     }
 
+    void criarLayoutsDosSetsDeDescritores() {
+        std::array<vk::DescriptorSetLayoutBinding, 1> associacoes = {
+            vk::DescriptorSetLayoutBinding{
+                0, vk::DescriptorType::eUniformBuffer, 1,
+                vk::ShaderStageFlagBits::eVertex}};
+
+        vk::DescriptorSetLayoutCreateInfo info;
+        info.bindingCount = static_cast<uint32_t>(associacoes.size());
+        info.pBindings = associacoes.data();
+
+        layoutDoSetDeDescritores_ =
+            dispositivo_.createDescriptorSetLayout(info);
+    }
+
     void criarLayoutDaPipeline() {
         vk::PipelineLayoutCreateInfo info;
-        info.setLayoutCount = 0;
+        info.setLayoutCount = 1;
+        info.pSetLayouts = &layoutDoSetDeDescritores_;
         info.pushConstantRangeCount = 0;
 
         layoutDaPipeline_ = dispositivo_.createPipelineLayout(info);
@@ -877,6 +893,7 @@ class App {
         dispositivo_.destroyShaderModule(shaderDeFragmentos);
         dispositivo_.destroyShaderModule(shaderDeVertices);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
+        dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeDescritores_);
         for (auto&& framebuffer : framebuffers_) {
             dispositivo_.destroyFramebuffer(framebuffer);
         }
@@ -931,6 +948,7 @@ class App {
 
     vk::RenderPass passeDeRenderizacao_;
 
+    vk::DescriptorSetLayout layoutDoSetDeDescritores_;
     vk::PipelineLayout layoutDaPipeline_;
     const std::string kCaminhoShaderDeVertices = "shaders/shader.vert.spv";
     vk::ShaderModule shaderDeVertices;
