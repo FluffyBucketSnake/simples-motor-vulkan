@@ -690,14 +690,20 @@ class App {
         criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, kIndices,
                             bufferDeIndices_, memoriaBufferDeIndices_);
 
-        obu_.transformacao = glm::perspectiveFov(
-            glm::radians(90.0f),
-            static_cast<float>(dimensoesDaSwapchain_.width),
-            static_cast<float>(dimensoesDaSwapchain_.height), 0.01f, 100.0f);
         criarBuffer(vk::BufferUsageFlagBits::eUniformBuffer |
                         vk::BufferUsageFlagBits::eTransferDst,
                     sizeof(OBU), vk::MemoryPropertyFlagBits::eDeviceLocal,
                     bufferDoOBU_, memoriaBufferDoOBU_);
+
+        obu_.modelo = glm::identity<glm::mat4>();
+        obu_.visao = glm::lookAt(glm::vec3(2.0f, 2.0f, -2.0f),
+                                 glm::vec3(0.0f, 0.0f, 0.0f),
+                                 glm::vec3(0.0f, 0.0f, -1.0f));
+        obu_.projecao = glm::perspectiveFov(
+            glm::radians(90.0f),
+            static_cast<float>(dimensoesDaSwapchain_.width),
+            static_cast<float>(dimensoesDaSwapchain_.height), 0.01f, 100.0f);
+        obu_.projecao[1][1] *= -1;
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
 
         for (size_t i = 0; i < framebuffers_.size(); i++) {
