@@ -1,6 +1,6 @@
 #version 450
 
-layout(location = 0) in vec2 posicao;
+layout(location = 0) in vec3 posicao;
 layout(location = 1) in vec3 cor;
 
 layout(binding = 0) uniform OBU {

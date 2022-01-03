@@ -19,14 +19,14 @@
 
 namespace smv {
 struct Vertice {
-    glm::vec2 posicao;
+    glm::vec3 posicao;
     glm::vec3 cor;
 
     static std::array<vk::VertexInputAttributeDescription, 2>
     descricaoDeAtributos() {
         return {
-            vk::VertexInputAttributeDescription{0, 0, vk::Format::eR32G32Sfloat,
-                                                offsetof(Vertice, posicao)},
+            vk::VertexInputAttributeDescription{
+                0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, posicao)},
             vk::VertexInputAttributeDescription{
                 1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, cor)}};
     }
@@ -1017,14 +1017,18 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeDescritores_;
 
-    std::vector<Vertice> kVertices = {{{-0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-                                      {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-                                      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-                                      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    std::vector<Vertice> kVertices = {{{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+                                      {{-0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+                                      {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+                                      {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+                                      {{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
+                                      {{-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+                                      {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+                                      {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0u, 1u, 2u, 1u, 3u, 2u};
+    std::vector<uint16_t> kIndices = {0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 
