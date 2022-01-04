@@ -1165,14 +1165,15 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeDescritores_;
 
-    std::vector<Vertice> kVertices = {{{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-                                      {{-0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-                                      {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-                                      {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                                      {{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
-                                      {{-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-                                      {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-                                      {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    std::vector<Vertice> kVertices = {
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
