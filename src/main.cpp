@@ -693,6 +693,11 @@ class App {
 
         vk::PipelineMultisampleStateCreateInfo infoAmostragem;
 
+        vk::PipelineDepthStencilStateCreateInfo infoProfundidade;
+        infoProfundidade.depthTestEnable = true;
+        infoProfundidade.depthWriteEnable = true;
+        infoProfundidade.depthCompareOp = vk::CompareOp::eLess;
+
         vk::PipelineColorBlendAttachmentState misturaDoAnexoDeCor;
         misturaDoAnexoDeCor.colorWriteMask =
             vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
@@ -729,6 +734,7 @@ class App {
         info.pViewportState = &infoViewport;
         info.pRasterizationState = &infoRasterizador;
         info.pMultisampleState = &infoAmostragem;
+        info.pDepthStencilState = &infoProfundidade;
         info.pColorBlendState = &infoMistura;
         info.layout = layoutDaPipeline_;
         info.renderPass = passeDeRenderizacao_;
