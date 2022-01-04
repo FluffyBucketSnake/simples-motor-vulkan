@@ -514,19 +514,25 @@ class App {
     }
 
     void criarPasseDeRenderizacao() {
-        vk::AttachmentDescription anexoCor;
-        anexoCor.format = formatoDaSwapchain_;
-        // anexoCor.samples = vk::SampleCountFlagBits::e1;
-        anexoCor.loadOp = vk::AttachmentLoadOp::eClear;
-        anexoCor.storeOp = vk::AttachmentStoreOp::eStore;
-        anexoCor.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-        anexoCor.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-        anexoCor.initialLayout = vk::ImageLayout::eUndefined;
-        anexoCor.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+        std::array<vk::AttachmentDescription, 2> anexos = {
+            vk::AttachmentDescription(
+                {}, formatoDaSwapchain_, vk::SampleCountFlagBits::e1,
+                vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
+                vk::AttachmentLoadOp::eDontCare,
+                vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
+                vk::ImageLayout::ePresentSrcKHR),
+            vk::AttachmentDescription(
+                {}, formatoDaImagemDeProfundidade_, vk::SampleCountFlagBits::e1,
+                vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
+                vk::AttachmentLoadOp::eDontCare,
+                vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
+                vk::ImageLayout::eDepthStencilAttachmentOptimal)};
 
-        vk::AttachmentReference refAnexoCor;
-        refAnexoCor.attachment = 0;
-        refAnexoCor.layout = vk::ImageLayout::eColorAttachmentOptimal;
+        vk::AttachmentReference refAnexoCor(
+            0, vk::ImageLayout::eColorAttachmentOptimal);
+
+        vk::AttachmentReference refAnexoProfundidade(
+            1, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
         vk::SubpassDescription subpasse;
         // subpasse.flags = {};
@@ -536,7 +542,7 @@ class App {
         subpasse.colorAttachmentCount = 1;
         subpasse.pColorAttachments = &refAnexoCor;
         // subpasse.pResolveAttachments = nullptr;
-        // subpasse.pDepthStencilAttachment = nullptr;
+        subpasse.pDepthStencilAttachment = &refAnexoProfundidade;
         // subpasse.preserveAttachmentCount = 0;
         // subpasse.pPreserveAttachments = nullptr;
 
@@ -544,16 +550,19 @@ class App {
         dependenciaAnexoDeCor.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependenciaAnexoDeCor.dstSubpass = 0;
         dependenciaAnexoDeCor.srcStageMask =
-            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            vk::PipelineStageFlagBits::eColorAttachmentOutput |
+            vk::PipelineStageFlagBits::eEarlyFragmentTests;
         dependenciaAnexoDeCor.dstStageMask =
-            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            vk::PipelineStageFlagBits::eColorAttachmentOutput |
+            vk::PipelineStageFlagBits::eEarlyFragmentTests;
         dependenciaAnexoDeCor.srcAccessMask = {};
         dependenciaAnexoDeCor.dstAccessMask =
-            vk::AccessFlagBits::eColorAttachmentWrite;
+            vk::AccessFlagBits::eColorAttachmentWrite |
+            vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
         vk::RenderPassCreateInfo info;
-        info.attachmentCount = 1;
-        info.pAttachments = &anexoCor;
+        info.attachmentCount = static_cast<uint32_t>(anexos.size());
+        info.pAttachments = anexos.data();
         info.subpassCount = 1;
         info.pSubpasses = &subpasse;
         info.dependencyCount = 1;
@@ -566,15 +575,21 @@ class App {
         std::transform(
             visoesDasImagensDaSwapchain_.begin(),
             visoesDasImagensDaSwapchain_.end(),
-            std::back_inserter(framebuffers_),
-            [this](const vk::ImageView& i) { return criarFramebuffer(i); });
+            std::back_inserter(framebuffers_), [this](const vk::ImageView& i) {
+                return criarFramebuffer(i, visaoDaImagemDeProfundidade_);
+            });
     }
 
-    vk::Framebuffer criarFramebuffer(const vk::ImageView& imagemDaSwapchain) {
+    vk::Framebuffer criarFramebuffer(
+        const vk::ImageView& imagemDaSwapchain,
+        const vk::ImageView& imagemDeProfundidade) {
+        std::array<vk::ImageView, 2> anexos = {imagemDaSwapchain,
+                                               imagemDeProfundidade};
+
         vk::FramebufferCreateInfo info;
         info.renderPass = passeDeRenderizacao_;
-        info.attachmentCount = 1;
-        info.pAttachments = &imagemDaSwapchain;
+        info.attachmentCount = static_cast<uint32_t>(anexos.size());
+        info.pAttachments = anexos.data();
         info.width = dimensoesDaSwapchain_.width;
         info.height = dimensoesDaSwapchain_.height;
         info.layers = 1;
@@ -738,15 +753,17 @@ class App {
         vk::CommandBufferBeginInfo info;
         bufferDeComandos.begin(info);
 
-        vk::ClearValue corDeLimpeza = {
-            vk::ClearColorValue{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}};
+        std::array<vk::ClearValue, 2> valoresDeLimpeza = {
+            vk::ClearColorValue{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}},
+            vk::ClearDepthStencilValue{1.0f, 0}};
 
         vk::RenderPassBeginInfo infoPasse;
         infoPasse.renderPass = passeDeRenderizacao_;
         infoPasse.framebuffer = framebuffer;
         infoPasse.renderArea = vk::Rect2D{{0, 0}, dimensoesDaSwapchain_};
-        infoPasse.clearValueCount = 1;
-        infoPasse.pClearValues = &corDeLimpeza;
+        infoPasse.clearValueCount =
+            static_cast<uint32_t>(valoresDeLimpeza.size());
+        infoPasse.pClearValues = valoresDeLimpeza.data();
         bufferDeComandos.beginRenderPass(infoPasse,
                                          vk::SubpassContents::eInline);
 
