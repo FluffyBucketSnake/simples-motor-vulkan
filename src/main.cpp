@@ -1007,6 +1007,14 @@ class App {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
             renderizar();
+            if (precisaRecriarRenderizador_) {
+                destruirRenderizador();
+                criarRenderizador();
+                for (size_t i = 0; i < framebuffers_.size(); i++) {
+                    gravarBufferDeComandos(buffersDeComandos_[i],
+                                           framebuffers_[i]);
+                }
+            }
         }
         dispositivo_.waitIdle();
     }
@@ -1136,6 +1144,8 @@ class App {
     vk::Queue filaDeApresentacao_;
 
     vk::CommandPool poolDeComandos_;
+
+    bool precisaRecriarRenderizador_ = false;
 
     vk::Format formatoDaSwapchain_;
     vk::Extent2D dimensoesDaSwapchain_;
