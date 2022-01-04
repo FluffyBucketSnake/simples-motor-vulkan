@@ -55,15 +55,11 @@ class App {
         escolherDispositivoFisico();
         criarDispositivoLogicoEFilas();
         criarPoolDeComandos();
-        criarSwapchain();
-        criarImagemDeProfundidade();
-        criarPasseDeRenderizacao();
-        criarFramebuffers();
+        criarRenderizador();
         criarLayoutsDosSetsDeDescritores();
         criarLayoutDaPipeline();
         carregarShaders();
         criarPipeline();
-        criarBuffersDeComandos();
         criarPrimitivosDeSincronizacao();
         criarPoolDeDescritores();
     }
@@ -275,6 +271,14 @@ class App {
         info.queueFamilyIndex = familiaDeGraficos_;
 
         poolDeComandos_ = dispositivo_.createCommandPool(info);
+    }
+
+    void criarRenderizador() {
+        criarSwapchain();
+        criarImagemDeProfundidade();
+        criarPasseDeRenderizacao();
+        criarFramebuffers();
+        criarBuffersDeComandos();
     }
 
     void criarSwapchain() {
@@ -1080,6 +1084,17 @@ class App {
         dispositivo_.destroyShaderModule(shaderDeVertices);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
         dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeDescritores_);
+        destruirRenderizador();
+        dispositivo_.destroyCommandPool(poolDeComandos_);
+        dispositivo_.destroy();
+        instancia_.destroySurfaceKHR(superficie_);
+        instancia_.destroy();
+        glfwDestroyWindow(janela_);
+        glfwTerminate();
+    }
+
+    void destruirRenderizador() {
+        dispositivo_.freeCommandBuffers(poolDeComandos_, buffersDeComandos_);
         for (auto&& framebuffer : framebuffers_) {
             dispositivo_.destroyFramebuffer(framebuffer);
         }
@@ -1091,12 +1106,6 @@ class App {
             dispositivo_.destroyImageView(visao);
         }
         dispositivo_.destroySwapchainKHR(swapChain_);
-        dispositivo_.destroyCommandPool(poolDeComandos_);
-        dispositivo_.destroy();
-        instancia_.destroySurfaceKHR(superficie_);
-        instancia_.destroy();
-        glfwDestroyWindow(janela_);
-        glfwTerminate();
     }
 
 #ifdef NDEBUG
