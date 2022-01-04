@@ -1008,12 +1008,7 @@ class App {
             glfwPollEvents();
             renderizar();
             if (precisaRecriarRenderizador_) {
-                destruirRenderizador();
-                criarRenderizador();
-                for (size_t i = 0; i < framebuffers_.size(); i++) {
-                    gravarBufferDeComandos(buffersDeComandos_[i],
-                                           framebuffers_[i]);
-                }
+                recriarRenderizador();
             }
         }
         dispositivo_.waitIdle();
@@ -1029,12 +1024,16 @@ class App {
         dispositivo_.waitForFences(cercaAtual, false,
                                    std::numeric_limits<uint64_t>::max());
 
-        uint32_t indiceDaImagem =
-            dispositivo_
-                .acquireNextImageKHR(swapChain_,
-                                     std::numeric_limits<uint64_t>::max(),
-                                     semaforoDeImagemDisponivelAtual, nullptr)
-                .value;
+        auto resultadoDaAquisicao = dispositivo_.acquireNextImageKHR(
+            swapChain_, std::numeric_limits<uint64_t>::max(),
+            semaforoDeImagemDisponivelAtual, nullptr);
+
+        if (resultadoDaAquisicao.result == vk::Result::eErrorOutOfDateKHR) {
+            precisaRecriarRenderizador_ = true;
+            return;
+        }
+
+        uint32_t indiceDaImagem = resultadoDaAquisicao.value;
 
         auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
         if (cercaDaImagemAtual.has_value()) {
@@ -1065,9 +1064,30 @@ class App {
         infoApresentacao.pSwapchains = &swapChain_;
         infoApresentacao.pImageIndices = &indiceDaImagem;
 
-        filaDeApresentacao_.presentKHR(infoApresentacao);
+        vk::Result resultado = filaDeApresentacao_.presentKHR(infoApresentacao);
+        if (resultado == vk::Result::eErrorOutOfDateKHR ||
+            resultado == vk::Result::eSuboptimalKHR) {
+            precisaRecriarRenderizador_ = true;
+        }
 
         quadroAtual_ = (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
+    }
+
+    void recriarRenderizador() {
+        int largura = 0, altura = 0;
+        glfwGetFramebufferSize(janela_, &largura, &altura);
+        while (largura == 0 || altura == 0) {
+            glfwWaitEvents();
+            glfwGetFramebufferSize(janela_, &largura, &altura);
+        }
+
+        dispositivo_.waitIdle();
+
+        destruirRenderizador();
+        criarRenderizador();
+        for (size_t i = 0; i < framebuffers_.size(); i++) {
+            gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
+        }
     }
 
     void destruir() {
