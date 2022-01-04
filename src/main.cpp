@@ -56,6 +56,7 @@ class App {
         criarDispositivoLogicoEFilas();
         criarPoolDeComandos();
         criarSwapchain();
+        criarImagemDeProfundidade();
         criarPasseDeRenderizacao();
         criarFramebuffers();
         criarLayoutsDosSetsDeDescritores();
@@ -397,6 +398,58 @@ class App {
         info.subresourceRange.layerCount = 1;
 
         return dispositivo_.createImageView(info);
+    }
+
+    void criarImagemDeProfundidade() {
+        formatoDaImagemDeProfundidade_ = buscarFormatoSuportado(
+            {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint,
+             vk::Format::eD24UnormS8Uint},
+            vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+
+        vk::ImageAspectFlags aspectos = vk::ImageAspectFlagBits::eDepth;
+        if (formatoPossuiEstencil(formatoDaImagemDeProfundidade_)) {
+            aspectos = vk::ImageAspectFlagBits::eStencil;
+        }
+
+        criarImagem(formatoDaImagemDeProfundidade_,
+                    vk::Extent3D(dimensoesDaSwapchain_, 1),
+                    vk::ImageUsageFlagBits::eDepthStencilAttachment,
+                    imagemDeProfundidade_, memoriaImagemDeProfundidade_);
+        alterarLayout(
+            imagemDeProfundidade_, vk::PipelineStageFlagBits::eTopOfPipe,
+            vk::PipelineStageFlagBits::eEarlyFragmentTests, {},
+            vk::AccessFlagBits::eDepthStencilAttachmentRead |
+                vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+            vk::ImageLayout::eUndefined,
+            vk::ImageLayout::eDepthStencilAttachmentOptimal, aspectos);
+        visaoDaImagemDeProfundidade_ = criarVisaoDeImagem(
+            imagemDeProfundidade_, formatoDaImagemDeProfundidade_, aspectos);
+    }
+
+    vk::Format buscarFormatoSuportado(
+        std::initializer_list<vk::Format> candidatos,
+        vk::FormatFeatureFlags capacidades) {
+        auto resultado = std::find_if(
+            candidatos.begin(), candidatos.end(),
+            [this, capacidades](const vk::Format& candidato) {
+                auto propriedades =
+                    dispositivoFisico_.getFormatProperties(candidato);
+
+                return (propriedades.optimalTilingFeatures & capacidades) ==
+                       capacidades;
+            });
+
+        if (resultado == candidatos.end()) {
+            throw std::runtime_error(
+                "Não foi encontrado um formato suportado.");
+        }
+
+        return *resultado;
+    }
+
+    bool formatoPossuiEstencil(vk::Format formato) {
+        return formato == vk::Format::eD32SfloatS8Uint ||
+               formato == vk::Format::eD24UnormS8Uint;
     }
 
     void criarImagem(vk::Format formato,
@@ -1008,6 +1061,9 @@ class App {
             dispositivo_.destroyFramebuffer(framebuffer);
         }
         dispositivo_.destroyRenderPass(passeDeRenderizacao_);
+        dispositivo_.destroyImageView(visaoDaImagemDeProfundidade_);
+        dispositivo_.destroyImage(imagemDeProfundidade_);
+        dispositivo_.freeMemory(memoriaImagemDeProfundidade_);
         for (auto&& visao : visoesDasImagensDaSwapchain_) {
             dispositivo_.destroyImageView(visao);
         }
@@ -1054,6 +1110,12 @@ class App {
     vk::SwapchainKHR swapChain_;
     std::vector<vk::Image> imagensDaSwapchain_;
     std::vector<vk::ImageView> visoesDasImagensDaSwapchain_;
+
+    vk::Format formatoDaImagemDeProfundidade_;
+    vk::Image imagemDeProfundidade_;
+    vk::DeviceMemory memoriaImagemDeProfundidade_;
+    vk::ImageView visaoDaImagemDeProfundidade_;
+
     std::vector<vk::Framebuffer> framebuffers_;
 
     vk::RenderPass passeDeRenderizacao_;
