@@ -399,6 +399,67 @@ class App {
         return dispositivo_.createImageView(info);
     }
 
+    void criarImagem(vk::Format formato,
+                     vk::Extent3D dimensoes,
+                     vk::ImageUsageFlags usos,
+                     vk::Image& imagem,
+                     vk::DeviceMemory& memoria) {
+        vk::ImageCreateInfo info;
+        // info.flags = {};
+        info.imageType = vk::ImageType::e2D;
+        info.format = formato;
+        info.extent = dimensoes;
+        info.mipLevels = 1;
+        info.arrayLayers = 1;
+        info.samples = vk::SampleCountFlagBits::e1;
+        info.tiling = vk::ImageTiling::eOptimal;
+        info.usage = usos;
+        info.sharingMode = vk::SharingMode::eExclusive;
+        // info.queueFamilyIndexCount = 0;
+        // info.pQueueFamilyIndices = nullptr;
+        info.initialLayout = vk::ImageLayout::eUndefined;
+
+        imagem = dispositivo_.createImage(info);
+
+        auto requisitosDeMemoria =
+            dispositivo_.getImageMemoryRequirements(imagem);
+        auto tipoDeMemoria =
+            buscarTipoDeMemoria(requisitosDeMemoria.memoryTypeBits,
+                                vk::MemoryPropertyFlagBits::eDeviceLocal);
+        memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
+        dispositivo_.bindImageMemory(imagem, memoria, 0);
+    }
+
+    void alterarLayout(
+        const vk::Image& imagem,
+        vk::PipelineStageFlags estagioFonte,
+        vk::PipelineStageFlags estagioDestino,
+        vk::AccessFlags acessoFonte,
+        vk::AccessFlags acessoDestino,
+        vk::ImageLayout layoutAntigo,
+        vk::ImageLayout layoutNovo,
+        vk::ImageAspectFlags aspectos = vk::ImageAspectFlagBits::eColor) {
+        vk::ImageMemoryBarrier barreira;
+        barreira.srcAccessMask = acessoFonte;
+        barreira.dstAccessMask = acessoDestino;
+        barreira.oldLayout = layoutAntigo;
+        barreira.newLayout = layoutNovo;
+        // barreira.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        // barreira.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+        barreira.image = imagem;
+        barreira.subresourceRange.aspectMask = aspectos;
+        barreira.subresourceRange.baseMipLevel = 0;
+        barreira.subresourceRange.levelCount = 1;
+        barreira.subresourceRange.baseArrayLayer = 0;
+        barreira.subresourceRange.layerCount = 1;
+
+        vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
+        comando.pipelineBarrier(estagioFonte, estagioDestino, {}, nullptr,
+                                nullptr, barreira);
+        finalizarComandoDeUsoUnico(comando);
+    }
+
     void criarPasseDeRenderizacao() {
         vk::AttachmentDescription anexoCor;
         anexoCor.format = formatoDaSwapchain_;
