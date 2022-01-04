@@ -380,15 +380,17 @@ class App {
         }
     }
 
-    vk::ImageView criarVisaoDeImagem(const vk::Image& imagem,
-                                     vk::Format formato) {
+    vk::ImageView criarVisaoDeImagem(
+        const vk::Image& imagem,
+        vk::Format formato,
+        vk::ImageAspectFlags aspectos = vk::ImageAspectFlagBits::eColor) {
         vk::ImageViewCreateInfo info;
         // info.flags = {};
         info.image = imagem;
         info.viewType = vk::ImageViewType::e2D;
         info.format = formato;
         // info.components = {};
-        info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        info.subresourceRange.aspectMask = aspectos;
         info.subresourceRange.baseMipLevel = 0;
         info.subresourceRange.levelCount = 1;
         info.subresourceRange.baseArrayLayer = 0;
