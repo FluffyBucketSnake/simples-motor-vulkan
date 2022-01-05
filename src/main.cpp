@@ -1088,6 +1088,7 @@ class App {
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
+        precisaRecriarRenderizador_ = false;
     }
 
     void destruir() {
