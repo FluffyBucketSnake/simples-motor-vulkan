@@ -1126,6 +1126,7 @@ class App {
         for (auto&& framebuffer : framebuffers_) {
             dispositivo_.destroyFramebuffer(framebuffer);
         }
+        framebuffers_.clear();
         dispositivo_.destroyRenderPass(passeDeRenderizacao_);
         dispositivo_.destroyImageView(visaoDaImagemDeProfundidade_);
         dispositivo_.destroyImage(imagemDeProfundidade_);
@@ -1133,6 +1134,7 @@ class App {
         for (auto&& visao : visoesDasImagensDaSwapchain_) {
             dispositivo_.destroyImageView(visao);
         }
+        visoesDasImagensDaSwapchain_.clear();
         dispositivo_.destroySwapchainKHR(swapChain_);
     }
 
