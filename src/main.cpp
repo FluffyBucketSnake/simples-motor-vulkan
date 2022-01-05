@@ -1024,49 +1024,49 @@ class App {
         dispositivo_.waitForFences(cercaAtual, false,
                                    std::numeric_limits<uint64_t>::max());
 
-        auto resultadoDaAquisicao = dispositivo_.acquireNextImageKHR(
-            swapChain_, std::numeric_limits<uint64_t>::max(),
-            semaforoDeImagemDisponivelAtual, nullptr);
+        try {
+            uint32_t indiceDaImagem = dispositivo_.acquireNextImageKHR(
+                swapChain_, std::numeric_limits<uint64_t>::max(),
+                semaforoDeImagemDisponivelAtual, nullptr).value;
 
-        if (resultadoDaAquisicao.result == vk::Result::eErrorOutOfDateKHR) {
-            precisaRecriarRenderizador_ = true;
-            return;
-        }
+            auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
+            if (cercaDaImagemAtual.has_value()) {
+                dispositivo_.waitForFences(
+                    cercaDaImagemAtual.value(), false,
+                    std::numeric_limits<uint64_t>::max());
+            }
+            cercaDaImagemAtual = cercaAtual;
 
-        uint32_t indiceDaImagem = resultadoDaAquisicao.value;
+            dispositivo_.resetFences(cercaAtual);
 
-        auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
-        if (cercaDaImagemAtual.has_value()) {
-            dispositivo_.waitForFences(cercaDaImagemAtual.value(), false,
-                                       std::numeric_limits<uint64_t>::max());
-        }
-        cercaDaImagemAtual = cercaAtual;
+            vk::PipelineStageFlags estagiosAEsperar =
+                vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            vk::SubmitInfo infoSubmissao;
+            infoSubmissao.waitSemaphoreCount = 1;
+            infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivelAtual;
+            infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
+            infoSubmissao.commandBufferCount = 1;
+            infoSubmissao.pCommandBuffers = &buffersDeComandos_[indiceDaImagem];
+            infoSubmissao.signalSemaphoreCount = 1;
+            infoSubmissao.pSignalSemaphores =
+                &semaforoDeRenderizacaoCompletaAtual;
 
-        dispositivo_.resetFences(cercaAtual);
+            filaDeGraficos_.submit(infoSubmissao, cercaAtual);
 
-        vk::PipelineStageFlags estagiosAEsperar =
-            vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        vk::SubmitInfo infoSubmissao;
-        infoSubmissao.waitSemaphoreCount = 1;
-        infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivelAtual;
-        infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
-        infoSubmissao.commandBufferCount = 1;
-        infoSubmissao.pCommandBuffers = &buffersDeComandos_[indiceDaImagem];
-        infoSubmissao.signalSemaphoreCount = 1;
-        infoSubmissao.pSignalSemaphores = &semaforoDeRenderizacaoCompletaAtual;
+            vk::PresentInfoKHR infoApresentacao;
+            infoApresentacao.waitSemaphoreCount = 1;
+            infoApresentacao.pWaitSemaphores =
+                &semaforoDeRenderizacaoCompletaAtual;
+            infoApresentacao.swapchainCount = 1;
+            infoApresentacao.pSwapchains = &swapChain_;
+            infoApresentacao.pImageIndices = &indiceDaImagem;
 
-        filaDeGraficos_.submit(infoSubmissao, cercaAtual);
-
-        vk::PresentInfoKHR infoApresentacao;
-        infoApresentacao.waitSemaphoreCount = 1;
-        infoApresentacao.pWaitSemaphores = &semaforoDeRenderizacaoCompletaAtual;
-        infoApresentacao.swapchainCount = 1;
-        infoApresentacao.pSwapchains = &swapChain_;
-        infoApresentacao.pImageIndices = &indiceDaImagem;
-
-        vk::Result resultado = filaDeApresentacao_.presentKHR(infoApresentacao);
-        if (resultado == vk::Result::eErrorOutOfDateKHR ||
-            resultado == vk::Result::eSuboptimalKHR) {
+            vk::Result resultado =
+                filaDeApresentacao_.presentKHR(infoApresentacao);
+            if (resultado == vk::Result::eSuboptimalKHR) {
+                precisaRecriarRenderizador_ = true;
+            }
+        } catch (const vk::OutOfDateKHRError& _) {
             precisaRecriarRenderizador_ = true;
         }
 
