@@ -70,6 +70,13 @@ class App {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         janela_ = glfwCreateWindow(kLarguraDaJanela, kAlturaDaJanela,
                                    kTituloDaJanela, nullptr, nullptr);
+        glfwSetWindowUserPointer(janela_, this);
+        glfwSetFramebufferSizeCallback(janela_, callbackDeRedimensao);
+    }
+
+    static void callbackDeRedimensao(GLFWwindow* janela, int, int) {
+        auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(janela));
+        app->precisaRecriarRenderizador_ = true;
     }
 
     void criarInstancia() {
