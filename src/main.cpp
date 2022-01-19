@@ -22,6 +22,15 @@ struct Vertice {
     glm::vec3 posicao;
     glm::vec3 cor;
 
+    static vk::VertexInputBindingDescription descricaoDeAssociacao() {
+        vk::VertexInputBindingDescription descricaoDeAssociacao;
+        descricaoDeAssociacao.binding = 0;
+        descricaoDeAssociacao.stride = sizeof(Vertice);
+        descricaoDeAssociacao.inputRate = vk::VertexInputRate::eVertex;
+
+        return descricaoDeAssociacao;
+    }
+
     static std::array<vk::VertexInputAttributeDescription, 2>
     descricaoDeAtributos() {
         return {
@@ -665,10 +674,7 @@ class App {
                 shaderDeFragmentos,
                 "main"}};
 
-        vk::VertexInputBindingDescription descricaoDeAssociacao;
-        descricaoDeAssociacao.binding = 0;
-        descricaoDeAssociacao.stride = sizeof(Vertice);
-        descricaoDeAssociacao.inputRate = vk::VertexInputRate::eVertex;
+        auto descricaoDeAssociacao = Vertice::descricaoDeAssociacao();
 
         auto atributosDosVertices = Vertice::descricaoDeAtributos();
 
@@ -682,19 +688,9 @@ class App {
         vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
         infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
 
-        vk::Viewport viewport = {
-            0.0f,
-            0.0f,
-            static_cast<float>(dimensoesDaSwapchain_.width),
-            static_cast<float>(dimensoesDaSwapchain_.height),
-            0.0f,
-            1.0f};
-        vk::Rect2D recorte = {{0, 0}, dimensoesDaSwapchain_};
         vk::PipelineViewportStateCreateInfo infoViewport;
         infoViewport.viewportCount = 1;
-        infoViewport.pViewports = &viewport;
         infoViewport.scissorCount = 1;
-        infoViewport.pScissors = &recorte;
 
         vk::PipelineRasterizationStateCreateInfo infoRasterizador;
         infoRasterizador.polygonMode = vk::PolygonMode::eFill;
@@ -736,6 +732,13 @@ class App {
         infoMistura.attachmentCount = 1;
         infoMistura.pAttachments = &misturaDoAnexoDeCor;
 
+        std::array<vk::DynamicState, 2> estadosDinamicos = {
+            vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+        vk::PipelineDynamicStateCreateInfo infoEstadosDinamicos;
+        infoEstadosDinamicos.dynamicStateCount =
+            static_cast<uint32_t>(estadosDinamicos.size());
+        infoEstadosDinamicos.pDynamicStates = estadosDinamicos.data();
+
         vk::GraphicsPipelineCreateInfo info;
         // info.flags = {}
         info.stageCount = static_cast<uint32_t>(estagios.size());
@@ -747,6 +750,7 @@ class App {
         info.pMultisampleState = &infoAmostragem;
         info.pDepthStencilState = &infoProfundidade;
         info.pColorBlendState = &infoMistura;
+        info.pDynamicState = &infoEstadosDinamicos;
         info.layout = layoutDaPipeline_;
         info.renderPass = passeDeRenderizacao_;
         info.subpass = 0;
@@ -786,6 +790,19 @@ class App {
 
         bufferDeComandos.bindPipeline(vk::PipelineBindPoint::eGraphics,
                                       pipeline_);
+        
+        vk::Viewport viewport = {
+            0.0f,
+            0.0f,
+            static_cast<float>(dimensoesDaSwapchain_.width),
+            static_cast<float>(dimensoesDaSwapchain_.height),
+            0.0f,
+            1.0f};
+        bufferDeComandos.setViewport(0, viewport);
+
+        vk::Rect2D recorte = {{0, 0}, dimensoesDaSwapchain_};
+        bufferDeComandos.setScissor(0, recorte);
+
         bufferDeComandos.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                             layoutDaPipeline_, 0,
                                             setDeDescritores_, {});
@@ -1032,9 +1049,12 @@ class App {
                                    std::numeric_limits<uint64_t>::max());
 
         try {
-            uint32_t indiceDaImagem = dispositivo_.acquireNextImageKHR(
-                swapChain_, std::numeric_limits<uint64_t>::max(),
-                semaforoDeImagemDisponivelAtual, nullptr).value;
+            uint32_t indiceDaImagem =
+                dispositivo_
+                    .acquireNextImageKHR(
+                        swapChain_, std::numeric_limits<uint64_t>::max(),
+                        semaforoDeImagemDisponivelAtual, nullptr)
+                    .value;
 
             auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
             if (cercaDaImagemAtual.has_value()) {
