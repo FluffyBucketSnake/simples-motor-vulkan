@@ -16,6 +16,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#pragma GCC diagnostic pop
+
 #include <vulkan/vulkan.hpp>
 
 namespace smv {
