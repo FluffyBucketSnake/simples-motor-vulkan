@@ -22,6 +22,7 @@ namespace smv {
 struct Vertice {
     glm::vec3 posicao;
     glm::vec3 cor;
+    glm::vec2 coordTex;
 
     static vk::VertexInputBindingDescription descricaoDeAssociacao() {
         vk::VertexInputBindingDescription descricaoDeAssociacao;
@@ -32,13 +33,15 @@ struct Vertice {
         return descricaoDeAssociacao;
     }
 
-    static std::array<vk::VertexInputAttributeDescription, 2>
+    static std::array<vk::VertexInputAttributeDescription, 3>
     descricaoDeAtributos() {
         return {
             vk::VertexInputAttributeDescription{
                 0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, posicao)},
             vk::VertexInputAttributeDescription{
-                1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, cor)}};
+                1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, cor)},
+            vk::VertexInputAttributeDescription{2, 0, vk::Format::eR32G32Sfloat,
+                                                offsetof(Vertice, coordTex)}};
     }
 };
 
@@ -1279,18 +1282,14 @@ class App {
     vk::DescriptorSet setDeDescritores_;
 
     std::vector<Vertice> kVertices = {
-        {{-3.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{-3.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{1.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{1.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{-1.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}},
-        {{-1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
-        {{3.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
-        {{3.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}}};
+        {{-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
+        {{-1.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+        {{1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7};
+    std::vector<uint16_t> kIndices = {0, 1, 3, 1, 2, 3};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 
