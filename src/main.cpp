@@ -629,10 +629,13 @@ class App {
     }
 
     void criarLayoutsDosSetsDeDescritores() {
-        std::array<vk::DescriptorSetLayoutBinding, 1> associacoes = {
+        std::array<vk::DescriptorSetLayoutBinding, 2> associacoes = {
             vk::DescriptorSetLayoutBinding{
                 0, vk::DescriptorType::eUniformBuffer, 1,
-                vk::ShaderStageFlagBits::eVertex}};
+                vk::ShaderStageFlagBits::eVertex},
+            vk::DescriptorSetLayoutBinding{
+                1, vk::DescriptorType::eCombinedImageSampler, 1,
+                vk::ShaderStageFlagBits::eFragment}};
 
         vk::DescriptorSetLayoutCreateInfo info;
         info.bindingCount = static_cast<uint32_t>(associacoes.size());
@@ -854,8 +857,9 @@ class App {
     }
 
     void criarPoolDeDescritores() {
-        std::array<vk::DescriptorPoolSize, 1> tamanhos = {
-            vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 1}};
+        std::array<vk::DescriptorPoolSize, 2> tamanhos = {
+            vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 1},
+            vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, 1}};
 
         vk::DescriptorPoolCreateInfo info;
         info.maxSets = 1;
@@ -1000,7 +1004,7 @@ class App {
             vk::PipelineStageFlagBits::eComputeShader,
             vk::AccessFlagBits::eTransferWrite,
             vk::AccessFlagBits::eShaderRead,
-            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnly);
+            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
         dispositivo_.destroyBuffer(bufferDePreparo);
         dispositivo_.freeMemory(memoriaBufferDePreparo);
@@ -1029,6 +1033,14 @@ class App {
                                   vk::ImageLayout::eTransferDstOptimal,
                                   {regiao});
         finalizarComandoDeUsoUnico(comando);
+    }
+
+    vk::Sampler criarAmostrador() {
+        vk::SamplerCreateInfo info;
+        info.magFilter = vk::Filter::eLinear;
+        info.minFilter = vk::Filter::eLinear;
+
+        return dispositivo_.createSampler(info);
     }
 
     vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
@@ -1115,14 +1127,22 @@ class App {
 
         vk::DescriptorBufferInfo infoOBU = {bufferDoOBU_, 0, sizeof(OBU)};
 
-        std::array<vk::WriteDescriptorSet, 1> escreverOBU = {
+        vk::DescriptorImageInfo infoTextura = {amostradorDaTextura_, visaoDaTextura_, vk::ImageLayout::eShaderReadOnlyOptimal};
+
+        std::array<vk::WriteDescriptorSet, 2> escreverOBU = {
             vk::WriteDescriptorSet{setDeDescritores_,
                                    0,
                                    0,
                                    1,
                                    vk::DescriptorType::eUniformBuffer,
                                    {},
-                                   &infoOBU}};
+                                   &infoOBU},
+            vk::WriteDescriptorSet{setDeDescritores_,
+                                   1,
+                                   0,
+                                   1,
+                                   vk::DescriptorType::eCombinedImageSampler,
+                                   &infoTextura}};
 
         dispositivo_.updateDescriptorSets(escreverOBU, {});
     }
