@@ -877,6 +877,11 @@ class App {
                     bufferDoOBU_, memoriaBufferDoOBU_);
         atualizarBufferDaOBU();
 
+        vk::Extent3D dimensoesDaTextura;
+        carregarImagem(kCaminhoDaTextura, textura_, memoriaTextura_, dimensoesDaTextura);
+        visaoDaTextura_ = criarVisaoDeImagem(textura_, vk::Format::eR8G8B8A8Srgb);
+        amostradorDaTextura_ = criarAmostrador();
+
         criarSetsDeDescritores();
 
         for (size_t i = 0; i < framebuffers_.size(); i++) {
@@ -1225,6 +1230,10 @@ class App {
     }
 
     void destruir() {
+        dispositivo_.destroySampler(amostradorDaTextura_);
+        dispositivo_.destroyImageView(visaoDaTextura_);
+        dispositivo_.destroyImage(textura_);
+        dispositivo_.freeMemory(memoriaTextura_);
         dispositivo_.destroyBuffer(bufferDoOBU_);
         dispositivo_.freeMemory(memoriaBufferDoOBU_);
         dispositivo_.destroyBuffer(bufferDeIndices_);
@@ -1355,6 +1364,12 @@ class App {
     OBU obu_;
     vk::Buffer bufferDoOBU_;
     vk::DeviceMemory memoriaBufferDoOBU_;
+
+    std::string kCaminhoDaTextura = "res/statue-g162b3a07b_640.jpg";
+    vk::Image textura_;
+    vk::ImageView visaoDaTextura_;
+    vk::Sampler amostradorDaTextura_;
+    vk::DeviceMemory memoriaTextura_;
 };
 }  // namespace smv
 
