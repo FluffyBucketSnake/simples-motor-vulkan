@@ -950,6 +950,57 @@ class App {
         dispositivo_.bindBufferMemory(buffer, memoria, 0);
     }
 
+    void carregarImagem(const std::string& caminho,
+                        vk::Image& imagem,
+                        vk::DeviceMemory& memoria,
+                        vk::Extent3D& dimensoes) {
+        int largura, altura, _canais;
+        stbi_uc* pixels = stbi_load(caminho.c_str(), &largura, &altura,
+                                    &_canais, STBI_rgb_alpha);
+        if (pixels == nullptr) {
+            std::cout << "Não foi possível carregar a imagem '" << caminho
+                      << "'." << std::endl;
+        }
+        dimensoes = vk::Extent3D{static_cast<uint32_t>(largura),
+                                 static_cast<uint32_t>(altura), 1u};
+        size_t tamanho = dimensoes.width * dimensoes.height * 4u;
+
+        criarImagem(vk::Format::eR8G8B8A8Srgb, dimensoes,
+                    vk::ImageUsageFlagBits::eTransferDst |
+                        vk::ImageUsageFlagBits::eSampled,
+                    imagem, memoria);
+
+        vk::Buffer bufferDePreparo;
+        vk::DeviceMemory memoriaBufferDePreparo;
+        criarBuffer(vk::BufferUsageFlagBits::eTransferSrc, tamanho,
+                    vk::MemoryPropertyFlagBits::eHostVisible |
+                        vk::MemoryPropertyFlagBits::eHostCoherent,
+                    bufferDePreparo, memoriaBufferDePreparo);
+
+        void* dados =
+            dispositivo_.mapMemory(memoriaBufferDePreparo, 0, tamanho);
+        std::memcpy(dados, pixels, tamanho);
+        dispositivo_.unmapMemory(memoriaBufferDePreparo);
+        stbi_image_free(pixels);
+
+        alterarLayout(imagem, vk::PipelineStageFlagBits::eTopOfPipe,
+                      vk::PipelineStageFlagBits::eTransfer, {},
+                      vk::AccessFlagBits::eTransferWrite,
+                      vk::ImageLayout::eUndefined,
+                      vk::ImageLayout::eTransferDstOptimal);
+        copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
+                                 dimensoes.height);
+        alterarLayout(
+            imagem, vk::PipelineStageFlagBits::eTransfer,
+            vk::PipelineStageFlagBits::eComputeShader,
+            vk::AccessFlagBits::eTransferWrite,
+            vk::AccessFlagBits::eShaderRead,
+            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnly);
+
+        dispositivo_.destroyBuffer(bufferDePreparo);
+        dispositivo_.freeMemory(memoriaBufferDePreparo);
+    }
+
     vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
         vk::MemoryAllocateInfo infoAlloc;
         infoAlloc.allocationSize = tamanho;
