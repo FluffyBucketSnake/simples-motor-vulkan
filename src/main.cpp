@@ -1006,6 +1006,31 @@ class App {
         dispositivo_.freeMemory(memoriaBufferDePreparo);
     }
 
+    void copiarDeBufferParaImagem(vk::Buffer bufferFonte,
+                                  vk::Image imagemDestino,
+                                  uint32_t largura,
+                                  uint32_t altura) {
+        vk::BufferImageCopy regiao;
+
+        // regiao.bufferOffset = 0;
+        // regiao.bufferRowLength = 0;
+        // regiao.bufferImageHeight = 0;
+
+        regiao.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        regiao.imageSubresource.mipLevel = 0;
+        regiao.imageSubresource.baseArrayLayer = 0;
+        regiao.imageSubresource.layerCount = 1;
+
+        regiao.imageOffset = vk::Offset3D{0, 0, 0};
+        regiao.imageExtent = vk::Extent3D{largura, altura, 1u};
+
+        vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
+        comando.copyBufferToImage(bufferFonte, imagemDestino,
+                                  vk::ImageLayout::eTransferDstOptimal,
+                                  {regiao});
+        finalizarComandoDeUsoUnico(comando);
+    }
+
     vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
         vk::MemoryAllocateInfo infoAlloc;
         infoAlloc.allocationSize = tamanho;
