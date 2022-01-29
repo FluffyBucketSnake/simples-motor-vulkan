@@ -23,6 +23,15 @@ struct Vertice {
     glm::vec3 posicao;
     glm::vec3 cor;
 
+    static vk::VertexInputBindingDescription descricaoDeAssociacao() {
+        vk::VertexInputBindingDescription descricaoDeAssociacao;
+        descricaoDeAssociacao.binding = 0;
+        descricaoDeAssociacao.stride = sizeof(Vertice);
+        descricaoDeAssociacao.inputRate = vk::VertexInputRate::eVertex;
+
+        return descricaoDeAssociacao;
+    }
+
     static std::array<vk::VertexInputAttributeDescription, 2>
     descricaoDeAtributos() {
         return {
@@ -524,10 +533,7 @@ class App {
                 shaderDeFragmentos,
                 "main"}};
 
-        vk::VertexInputBindingDescription descricaoDeAssociacao;
-        descricaoDeAssociacao.binding = 0;
-        descricaoDeAssociacao.stride = sizeof(Vertice);
-        descricaoDeAssociacao.inputRate = vk::VertexInputRate::eVertex;
+        auto descricaoDeAssociacao = Vertice::descricaoDeAssociacao();
 
         auto atributosDosVertices = Vertice::descricaoDeAtributos();
 
