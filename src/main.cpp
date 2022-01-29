@@ -630,9 +630,9 @@ class App {
 
     void criarLayoutsDosSetsDeDescritores() {
         std::array<vk::DescriptorSetLayoutBinding, 2> associacoes = {
-            vk::DescriptorSetLayoutBinding{
-                0, vk::DescriptorType::eUniformBuffer, 1,
-                vk::ShaderStageFlagBits::eVertex},
+            vk::DescriptorSetLayoutBinding{0,
+                                           vk::DescriptorType::eUniformBuffer,
+                                           1, vk::ShaderStageFlagBits::eVertex},
             vk::DescriptorSetLayoutBinding{
                 1, vk::DescriptorType::eCombinedImageSampler, 1,
                 vk::ShaderStageFlagBits::eFragment}};
@@ -859,7 +859,8 @@ class App {
     void criarPoolDeDescritores() {
         std::array<vk::DescriptorPoolSize, 2> tamanhos = {
             vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 1},
-            vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, 1}};
+            vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler,
+                                   1}};
 
         vk::DescriptorPoolCreateInfo info;
         info.maxSets = 1;
@@ -882,8 +883,10 @@ class App {
         atualizarBufferDaOBU();
 
         vk::Extent3D dimensoesDaTextura;
-        carregarImagem(kCaminhoDaTextura, textura_, memoriaTextura_, dimensoesDaTextura);
-        visaoDaTextura_ = criarVisaoDeImagem(textura_, vk::Format::eR8G8B8A8Srgb);
+        carregarImagem(kCaminhoDaTextura, textura_, memoriaTextura_,
+                       dimensoesDaTextura);
+        visaoDaTextura_ =
+            criarVisaoDeImagem(textura_, vk::Format::eR8G8B8A8Srgb);
         amostradorDaTextura_ = criarAmostrador();
 
         criarSetsDeDescritores();
@@ -999,12 +1002,12 @@ class App {
                       vk::ImageLayout::eTransferDstOptimal);
         copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
                                  dimensoes.height);
-        alterarLayout(
-            imagem, vk::PipelineStageFlagBits::eTransfer,
-            vk::PipelineStageFlagBits::eComputeShader,
-            vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eShaderRead,
-            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+        alterarLayout(imagem, vk::PipelineStageFlagBits::eTransfer,
+                      vk::PipelineStageFlagBits::eComputeShader,
+                      vk::AccessFlagBits::eTransferWrite,
+                      vk::AccessFlagBits::eShaderRead,
+                      vk::ImageLayout::eTransferDstOptimal,
+                      vk::ImageLayout::eShaderReadOnlyOptimal);
 
         dispositivo_.destroyBuffer(bufferDePreparo);
         dispositivo_.freeMemory(memoriaBufferDePreparo);
@@ -1127,7 +1130,9 @@ class App {
 
         vk::DescriptorBufferInfo infoOBU = {bufferDoOBU_, 0, sizeof(OBU)};
 
-        vk::DescriptorImageInfo infoTextura = {amostradorDaTextura_, visaoDaTextura_, vk::ImageLayout::eShaderReadOnlyOptimal};
+        vk::DescriptorImageInfo infoTextura = {
+            amostradorDaTextura_, visaoDaTextura_,
+            vk::ImageLayout::eShaderReadOnlyOptimal};
 
         std::array<vk::WriteDescriptorSet, 2> escreverOBU = {
             vk::WriteDescriptorSet{setDeDescritores_,
@@ -1137,10 +1142,7 @@ class App {
                                    vk::DescriptorType::eUniformBuffer,
                                    {},
                                    &infoOBU},
-            vk::WriteDescriptorSet{setDeDescritores_,
-                                   1,
-                                   0,
-                                   1,
+            vk::WriteDescriptorSet{setDeDescritores_, 1, 0, 1,
                                    vk::DescriptorType::eCombinedImageSampler,
                                    &infoTextura}};
 
@@ -1150,6 +1152,7 @@ class App {
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
+            atualizar();
             renderizar();
             if (precisaRecriarContextoDeRenderizacao_) {
                 recriarContextoDeRenderizacao();
@@ -1157,6 +1160,8 @@ class App {
         }
         dispositivo_.waitIdle();
     }
+
+    void atualizar() {}
 
     void renderizar() {
         auto cercaAtual = cercasDeQuadros_[quadroAtual_];
