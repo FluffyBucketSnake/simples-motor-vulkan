@@ -65,7 +65,10 @@ class App {
         escolherDispositivoFisico();
         criarDispositivoLogicoEFilas();
         criarPoolDeComandos();
-        criarRenderizador();
+        criarSwapchain();
+        criarImagemDeProfundidade();
+        criarPasseDeRenderizacao();
+        criarFramebuffers();
         criarLayoutsDosSetsDeDescritores();
         criarLayoutDaPipeline();
         carregarShaders();
