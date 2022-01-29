@@ -1234,19 +1234,18 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeDescritores_;
 
-    std::vector<Vertice> kVertices = {
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    std::vector<Vertice> kVertices = {{{-3.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
+                                      {{-3.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
+                                      {{1.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
+                                      {{1.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
+                                      {{-1.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}},
+                                      {{-1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
+                                      {{3.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
+                                      {{3.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6};
+    std::vector<uint16_t> kIndices = {4, 5, 7, 5, 6, 7, 0, 1, 3, 1, 2, 3};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 
