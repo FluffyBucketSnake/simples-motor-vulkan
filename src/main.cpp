@@ -870,7 +870,7 @@ class App {
         obu_.visao = glm::lookAt(glm::vec3(0.0f, 2.0f, 0.0f),
                                  glm::vec3(0.0f, 0.0f, 0.0f),
                                  glm::vec3(0.0f, 0.0f, 1.0f));
-        obu_.projecao = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.0f, 100.0f);
+        obu_.projecao = glm::frustum(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
 
         criarSetsDeDescritores();
@@ -1231,14 +1231,15 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeDescritores_;
 
-    std::vector<Vertice> kVertices = {{{-3.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
-                                      {{-3.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
-                                      {{1.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
-                                      {{1.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
-                                      {{-1.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}},
-                                      {{-1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
-                                      {{3.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
-                                      {{3.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}}};
+    std::vector<Vertice> kVertices = {
+        {{-3.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
+        {{-3.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
+        {{1.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
+        {{1.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
+        {{-1.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}},
+        {{-1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
+        {{3.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
+        {{3.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
