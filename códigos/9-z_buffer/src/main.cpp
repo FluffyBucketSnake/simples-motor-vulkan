@@ -845,10 +845,14 @@ class App {
                     bufferDoOBU_, memoriaBufferDoOBU_);
 
         obu_.modelo = glm::identity<glm::mat4>();
-        obu_.visao = glm::lookAt(glm::vec3(0.0f, 2.0f, 0.0f),
-                                 glm::vec3(0.0f, 0.0f, 0.0f),
-                                 glm::vec3(0.0f, 0.0f, 1.0f));
+
+        glm::vec3 posicaoDaCamera = {0.0f, 2.0f, 0.0f};
+        glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
+        glm::vec3 cimaDaCamera = {0.0f, 0.0f, 1.0f};
+        obu_.visao = glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
+
         obu_.projecao = glm::frustum(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
+        
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
 
         criarSetsDeDescritores();
