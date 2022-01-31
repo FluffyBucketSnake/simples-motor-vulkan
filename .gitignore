@@ -507,3 +507,6 @@ FodyWeavers.xsd
 
 # Diretório de montagem
 build/
+
+# Recursos
+!res/*.obj
