@@ -1004,9 +1004,11 @@ class App {
         obu_.visao = glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
         float fovVertical = glm::radians(90.0f);
-        float aspecto = static_cast<float>(dimensoesDaSwapchain_.width) /
-                        static_cast<float>(dimensoesDaSwapchain_.height);
-        obu_.projecao = glm::perspective(fovVertical, aspecto, 0.1f, 100.0f);
+        float proporcaoDaTela =
+            static_cast<float>(dimensoesDaSwapchain_.width) /
+            static_cast<float>(dimensoesDaSwapchain_.height);
+        obu_.projecao =
+            glm::perspective(fovVertical, proporcaoDaTela, 0.1f, 100.0f);
 
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
     }
