@@ -1144,6 +1144,8 @@ class App {
         destruirContextoDeRenderizacao();
         criarContextoDeRenderizacao();
         atualizarBufferDaOBU();
+        dispositivo_.freeCommandBuffers(poolDeComandos_, buffersDeComandos_);
+        criarBuffersDeComandos();
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
