@@ -878,7 +878,7 @@ class App {
                             bufferDeVertices_, memoriaBufferDeVertices_);
         criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, kIndices,
                             bufferDeIndices_, memoriaBufferDeIndices_);
-                            
+
         carregarTextura(kCaminhoDaTextura, textura_, memoriaTextura_,
                         visaoDaTextura_);
         amostrador_ = criarAmostrador();
@@ -893,6 +893,42 @@ class App {
 
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
+        }
+    }
+
+    void carregarModelo(const std::string& caminho,
+                        std::vector<Vertice>& vertices,
+                        std::vector<uint16_t>& indices) {
+        tinyobj::attrib_t atributos;
+        std::vector<tinyobj::shape_t> formas;
+        std::vector<tinyobj::material_t> _materiais;
+        std::string aviso, erro;
+        if (!tinyobj::LoadObj(&atributos, &formas, &_materiais, &aviso, &erro,
+                              caminho.c_str())) {
+            throw std::runtime_error("Aviso: " + aviso + " Erro: " + erro);
+        }
+
+        for (const auto& forma : formas) {
+            for (const auto& indice : forma.mesh.indices) {
+                Vertice vertice{};
+
+                vertice.posicao = {
+                    atributos.vertices[(3 * indice.vertex_index) + 0],
+                    atributos.vertices[(3 * indice.vertex_index) + 1],
+                    atributos.vertices[(3 * indice.vertex_index) + 2]};
+
+                vertice.cor = {atributos.colors[(3 * indice.vertex_index) + 0],
+                               atributos.colors[(3 * indice.vertex_index) + 1],
+                               atributos.colors[(3 * indice.vertex_index) + 2]};
+
+                vertice.coordTex = {
+                    atributos.texcoords[(2 * indice.texcoord_index) + 0],
+                    1.0f -
+                        atributos.texcoords[(2 * indice.texcoord_index) + 1]};
+
+                vertices.push_back(vertice);
+                indices.push_back(indices.size());
+            }
         }
     }
 
