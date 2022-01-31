@@ -274,9 +274,9 @@ class App {
                         vk::DeviceMemory& memoria,
                         vk::Extent3D& dimensoes) {
         int largura, altura, _canais;
-        stbi_uc* pixels = stbi_load(caminho.c_str(), &largura, &altura,
+        stbi_uc* pixeis = stbi_load(caminho.c_str(), &largura, &altura,
                                     &_canais, STBI_rgb_alpha);
-        if (pixels == nullptr) {
+        if (pixeis == nullptr) {
             std::cout << "Não foi possível carregar a imagem '" << caminho
                       << "'." << std::endl;
         }
@@ -299,9 +299,9 @@ class App {
 
         void* dados =
             dispositivo_.mapMemory(memoriaBufferDePreparo, 0, tamanho);
-        std::memcpy(dados, pixels, tamanho);
+        std::memcpy(dados, pixeis, tamanho);
         dispositivo_.unmapMemory(memoriaBufferDePreparo);
-        stbi_image_free(pixels);
+        stbi_image_free(pixeis);
 
         alterarLayout(imagem, vk::PipelineStageFlagBits::eTopOfPipe,
                       vk::PipelineStageFlagBits::eTransfer, {},
