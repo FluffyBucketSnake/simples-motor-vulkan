@@ -1056,11 +1056,14 @@ class App {
                                    std::numeric_limits<uint64_t>::max());
 
         auto indiceDaImagem =
-            tentarAdquirirImagem(semaforoDeImagemDisponivelAtual, cercaAtual);
+            tentarAdquirirImagem(semaforoDeImagemDisponivelAtual);
         if (!indiceDaImagem.has_value()) {
             precisaRecriarContextoDeRenderizacao_ = true;
             return;
         }
+
+        esperarCercaDaImagemAtual(indiceDaImagem.value());
+        imagensEmExecucao_[indiceDaImagem.value()] = cercaAtual;
 
         dispositivo_.resetFences(cercaAtual);
 
@@ -1075,27 +1078,23 @@ class App {
     }
 
     std::optional<uint32_t> tentarAdquirirImagem(
-        vk::Semaphore semaforoASinalizar,
-        vk::Fence cercaAtual) {
+        vk::Semaphore semaforoASinalizar) {
         try {
-            uint32_t indiceDaImagem =
-                dispositivo_
-                    .acquireNextImageKHR(swapChain_,
-                                         std::numeric_limits<uint64_t>::max(),
-                                         semaforoASinalizar, nullptr)
-                    .value;
-
-            auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
-            if (cercaDaImagemAtual.has_value()) {
-                dispositivo_.waitForFences(
-                    cercaDaImagemAtual.value(), false,
-                    std::numeric_limits<uint64_t>::max());
-            }
-            cercaDaImagemAtual = cercaAtual;
-
-            return indiceDaImagem;
+            return dispositivo_
+                .acquireNextImageKHR(swapChain_,
+                                     std::numeric_limits<uint64_t>::max(),
+                                     semaforoASinalizar, nullptr)
+                .value;
         } catch (const vk::OutOfDateKHRError& _) {
             return {};
+        }
+    }
+
+    void esperarCercaDaImagemAtual(uint32_t indiceDaImagem) {
+        auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
+        if (cercaDaImagemAtual.has_value()) {
+            dispositivo_.waitForFences(cercaDaImagemAtual.value(), false,
+                                       std::numeric_limits<uint64_t>::max());
         }
     }
 
@@ -1119,14 +1118,14 @@ class App {
 
     bool tentarApresentarImagem(uint32_t indiceDaImagem,
                                 vk::Semaphore semaforoAEsperar) {
-        try {
-            vk::PresentInfoKHR infoApresentacao;
-            infoApresentacao.waitSemaphoreCount = 1;
-            infoApresentacao.pWaitSemaphores = &semaforoAEsperar;
-            infoApresentacao.swapchainCount = 1;
-            infoApresentacao.pSwapchains = &swapChain_;
-            infoApresentacao.pImageIndices = &indiceDaImagem;
+        vk::PresentInfoKHR infoApresentacao;
+        infoApresentacao.waitSemaphoreCount = 1;
+        infoApresentacao.pWaitSemaphores = &semaforoAEsperar;
+        infoApresentacao.swapchainCount = 1;
+        infoApresentacao.pSwapchains = &swapChain_;
+        infoApresentacao.pImageIndices = &indiceDaImagem;
 
+        try {
             vk::Result resultado =
                 filaDeApresentacao_.presentKHR(infoApresentacao);
             if (resultado == vk::Result::eSuboptimalKHR) {
@@ -1145,6 +1144,8 @@ class App {
         destruirContextoDeRenderizacao();
         criarContextoDeRenderizacao();
         atualizarBufferDaOBU();
+        dispositivo_.freeCommandBuffers(poolDeComandos_, buffersDeComandos_);
+        criarBuffersDeComandos();
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
