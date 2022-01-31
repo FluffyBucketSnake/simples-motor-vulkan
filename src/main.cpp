@@ -65,7 +65,7 @@ class App {
         escolherDispositivoFisico();
         criarDispositivoLogicoEFilas();
         criarPoolDeComandos();
-        criarRenderizador();
+        criarContextoDeRenderizacao();
         criarLayoutsDosSetsDeDescritores();
         criarLayoutDaPipeline();
         carregarShaders();
@@ -86,7 +86,7 @@ class App {
 
     static void callbackDeRedimensao(GLFWwindow* janela, int, int) {
         auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(janela));
-        app->precisaRecriarRenderizador_ = true;
+        app->precisaRecriarContextoDeRenderizacao_ = true;
     }
 
     void criarInstancia() {
@@ -290,7 +290,7 @@ class App {
         poolDeComandos_ = dispositivo_.createCommandPool(info);
     }
 
-    void criarRenderizador() {
+    void criarContextoDeRenderizacao() {
         criarSwapchain();
         criarImagemDeProfundidade();
         criarPasseDeRenderizacao();
@@ -1038,8 +1038,8 @@ class App {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
             renderizar();
-            if (precisaRecriarRenderizador_) {
-                recriarRenderizador();
+            if (precisaRecriarContextoDeRenderizacao_) {
+                recriarContextoDeRenderizacao();
             }
         }
         dispositivo_.waitIdle();
@@ -1098,16 +1098,16 @@ class App {
             vk::Result resultado =
                 filaDeApresentacao_.presentKHR(infoApresentacao);
             if (resultado == vk::Result::eSuboptimalKHR) {
-                precisaRecriarRenderizador_ = true;
+                precisaRecriarContextoDeRenderizacao_ = true;
             }
         } catch (const vk::OutOfDateKHRError& _) {
-            precisaRecriarRenderizador_ = true;
+            precisaRecriarContextoDeRenderizacao_ = true;
         }
 
         quadroAtual_ = (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
     }
 
-    void recriarRenderizador() {
+    void recriarContextoDeRenderizacao() {
         int largura = 0, altura = 0;
         glfwGetFramebufferSize(janela_, &largura, &altura);
         while (largura == 0 || altura == 0) {
@@ -1117,13 +1117,13 @@ class App {
 
         dispositivo_.waitIdle();
 
-        destruirRenderizador();
-        criarRenderizador();
+        destruirContextoDeRenderizacao();
+        criarContextoDeRenderizacao();
         atualizarBufferDaOBU();
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
-        precisaRecriarRenderizador_ = false;
+        precisaRecriarContextoDeRenderizacao_ = false;
     }
 
     void destruir() {
@@ -1148,7 +1148,7 @@ class App {
         dispositivo_.destroyShaderModule(shaderDeVertices);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
         dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeDescritores_);
-        destruirRenderizador();
+        destruirContextoDeRenderizacao();
         dispositivo_.destroyCommandPool(poolDeComandos_);
         dispositivo_.destroy();
         instancia_.destroySurfaceKHR(superficie_);
@@ -1157,7 +1157,7 @@ class App {
         glfwTerminate();
     }
 
-    void destruirRenderizador() {
+    void destruirContextoDeRenderizacao() {
         dispositivo_.freeCommandBuffers(poolDeComandos_, buffersDeComandos_);
         for (auto&& framebuffer : framebuffers_) {
             dispositivo_.destroyFramebuffer(framebuffer);
@@ -1203,7 +1203,7 @@ class App {
 
     vk::CommandPool poolDeComandos_;
 
-    bool precisaRecriarRenderizador_ = false;
+    bool precisaRecriarContextoDeRenderizacao_ = false;
 
     vk::Format formatoDaSwapchain_;
     vk::Extent2D dimensoesDaSwapchain_;
