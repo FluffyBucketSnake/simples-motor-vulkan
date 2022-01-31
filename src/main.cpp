@@ -24,6 +24,9 @@
 #include <stb_image.h>
 #pragma GCC diagnostic pop
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
 #include <vulkan/vulkan.hpp>
 
 namespace smv {

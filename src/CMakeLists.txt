@@ -15,3 +15,4 @@ target_compile_options(motor PRIVATE
 target_link_libraries(motor PRIVATE vulkan)
 target_link_libraries(motor PRIVATE glfw)
 target_link_libraries(motor PRIVATE stb)
+target_link_libraries(motor PRIVATE tinyobjloader)
