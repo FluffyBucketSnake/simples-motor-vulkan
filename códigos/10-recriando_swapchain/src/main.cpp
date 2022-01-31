@@ -1055,12 +1055,34 @@ class App {
         dispositivo_.waitForFences(cercaAtual, false,
                                    std::numeric_limits<uint64_t>::max());
 
+        auto indiceDaImagem =
+            tentarAdquirirImagem(semaforoDeImagemDisponivelAtual, cercaAtual);
+        if (!indiceDaImagem.has_value()) {
+            precisaRecriarContextoDeRenderizacao_ = true;
+            return;
+        }
+
+        dispositivo_.resetFences(cercaAtual);
+
+        submeterParaRenderizar(buffersDeComandos_[indiceDaImagem.value()],
+                               semaforoDeImagemDisponivelAtual,
+                               semaforoDeRenderizacaoCompletaAtual, cercaAtual);
+
+        precisaRecriarContextoDeRenderizacao_ = tentarApresentarImagem(
+            indiceDaImagem.value(), semaforoDeRenderizacaoCompletaAtual);
+
+        quadroAtual_ = (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
+    }
+
+    std::optional<uint32_t> tentarAdquirirImagem(
+        vk::Semaphore semaforoASinalizar,
+        vk::Fence cercaAtual) {
         try {
             uint32_t indiceDaImagem =
                 dispositivo_
-                    .acquireNextImageKHR(
-                        swapChain_, std::numeric_limits<uint64_t>::max(),
-                        semaforoDeImagemDisponivelAtual, nullptr)
+                    .acquireNextImageKHR(swapChain_,
+                                         std::numeric_limits<uint64_t>::max(),
+                                         semaforoASinalizar, nullptr)
                     .value;
 
             auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
@@ -1071,26 +1093,36 @@ class App {
             }
             cercaDaImagemAtual = cercaAtual;
 
-            dispositivo_.resetFences(cercaAtual);
+            return indiceDaImagem;
+        } catch (const vk::OutOfDateKHRError& _) {
+            return {};
+        }
+    }
 
-            vk::PipelineStageFlags estagiosAEsperar =
-                vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            vk::SubmitInfo infoSubmissao;
-            infoSubmissao.waitSemaphoreCount = 1;
-            infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivelAtual;
-            infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
-            infoSubmissao.commandBufferCount = 1;
-            infoSubmissao.pCommandBuffers = &buffersDeComandos_[indiceDaImagem];
-            infoSubmissao.signalSemaphoreCount = 1;
-            infoSubmissao.pSignalSemaphores =
-                &semaforoDeRenderizacaoCompletaAtual;
+    void submeterParaRenderizar(vk::CommandBuffer bufferDeComandos,
+                                vk::Semaphore semaforoAEsperar,
+                                vk::Semaphore semaforoASinalizar,
+                                vk::Fence cercaASinalizar) {
+        vk::PipelineStageFlags estagiosAEsperar =
+            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        vk::SubmitInfo infoSubmissao;
+        infoSubmissao.waitSemaphoreCount = 1;
+        infoSubmissao.pWaitSemaphores = &semaforoAEsperar;
+        infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
+        infoSubmissao.commandBufferCount = 1;
+        infoSubmissao.pCommandBuffers = &bufferDeComandos;
+        infoSubmissao.signalSemaphoreCount = 1;
+        infoSubmissao.pSignalSemaphores = &semaforoASinalizar;
 
-            filaDeGraficos_.submit(infoSubmissao, cercaAtual);
+        filaDeGraficos_.submit(infoSubmissao, cercaASinalizar);
+    }
 
+    bool tentarApresentarImagem(uint32_t indiceDaImagem,
+                                vk::Semaphore semaforoAEsperar) {
+        try {
             vk::PresentInfoKHR infoApresentacao;
             infoApresentacao.waitSemaphoreCount = 1;
-            infoApresentacao.pWaitSemaphores =
-                &semaforoDeRenderizacaoCompletaAtual;
+            infoApresentacao.pWaitSemaphores = &semaforoAEsperar;
             infoApresentacao.swapchainCount = 1;
             infoApresentacao.pSwapchains = &swapChain_;
             infoApresentacao.pImageIndices = &indiceDaImagem;
@@ -1098,25 +1130,18 @@ class App {
             vk::Result resultado =
                 filaDeApresentacao_.presentKHR(infoApresentacao);
             if (resultado == vk::Result::eSuboptimalKHR) {
-                precisaRecriarContextoDeRenderizacao_ = true;
+                return true;
             }
         } catch (const vk::OutOfDateKHRError& _) {
-            precisaRecriarContextoDeRenderizacao_ = true;
+            return true;
         }
 
-        quadroAtual_ = (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
+        return false;
     }
 
     void recriarContextoDeRenderizacao() {
-        int largura = 0, altura = 0;
-        glfwGetFramebufferSize(janela_, &largura, &altura);
-        while (largura == 0 || altura == 0) {
-            glfwWaitEvents();
-            glfwGetFramebufferSize(janela_, &largura, &altura);
-        }
-
+        esperarDimensoesValidas();
         dispositivo_.waitIdle();
-
         destruirContextoDeRenderizacao();
         criarContextoDeRenderizacao();
         atualizarBufferDaOBU();
@@ -1124,6 +1149,15 @@ class App {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
         precisaRecriarContextoDeRenderizacao_ = false;
+    }
+
+    void esperarDimensoesValidas() {
+        int largura = 0, altura = 0;
+        glfwGetFramebufferSize(janela_, &largura, &altura);
+        while (largura == 0 || altura == 0) {
+            glfwWaitEvents();
+            glfwGetFramebufferSize(janela_, &largura, &altura);
+        }
     }
 
     void destruir() {
