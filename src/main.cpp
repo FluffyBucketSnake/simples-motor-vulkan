@@ -875,19 +875,16 @@ class App {
                             bufferDeVertices_, memoriaBufferDeVertices_);
         criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, kIndices,
                             bufferDeIndices_, memoriaBufferDeIndices_);
+                            
+        carregarTextura(kCaminhoDaTextura, textura_, memoriaTextura_,
+                        visaoDaTextura_);
+        amostrador_ = criarAmostrador();
 
         criarBuffer(vk::BufferUsageFlagBits::eUniformBuffer |
                         vk::BufferUsageFlagBits::eTransferDst,
                     sizeof(OBU), vk::MemoryPropertyFlagBits::eDeviceLocal,
                     bufferDoOBU_, memoriaBufferDoOBU_);
         atualizarBufferDaOBU();
-
-        vk::Extent3D dimensoesDaTextura;
-        carregarImagem(kCaminhoDaTextura, textura_, memoriaTextura_,
-                       dimensoesDaTextura);
-        visaoDaTextura_ =
-            criarVisaoDeImagem(textura_, vk::Format::eR8G8B8A8Srgb);
-        amostradorDaTextura_ = criarAmostrador();
 
         criarSetsDeDescritores();
 
@@ -1038,6 +1035,15 @@ class App {
         finalizarComandoDeUsoUnico(comando);
     }
 
+    void carregarTextura(const std::string& caminho,
+                         vk::Image& imagem,
+                         vk::DeviceMemory& memoria,
+                         vk::ImageView& visaoDaImagem) {
+        vk::Extent3D _dimensoes;
+        carregarImagem(caminho, imagem, memoria, _dimensoes);
+        visaoDaImagem = criarVisaoDeImagem(imagem, vk::Format::eR8G8B8A8Srgb);
+    }
+
     vk::Sampler criarAmostrador() {
         vk::SamplerCreateInfo info;
         info.magFilter = vk::Filter::eLinear;
@@ -1131,7 +1137,7 @@ class App {
         vk::DescriptorBufferInfo infoOBU = {bufferDoOBU_, 0, sizeof(OBU)};
 
         vk::DescriptorImageInfo infoTextura = {
-            amostradorDaTextura_, visaoDaTextura_,
+            amostrador_, visaoDaTextura_,
             vk::ImageLayout::eShaderReadOnlyOptimal};
 
         std::array<vk::WriteDescriptorSet, 2> escreverOBU = {
@@ -1280,7 +1286,7 @@ class App {
     }
 
     void destruir() {
-        dispositivo_.destroySampler(amostradorDaTextura_);
+        dispositivo_.destroySampler(amostrador_);
         dispositivo_.destroyImageView(visaoDaTextura_);
         dispositivo_.destroyImage(textura_);
         dispositivo_.freeMemory(memoriaTextura_);
@@ -1418,7 +1424,7 @@ class App {
     std::string kCaminhoDaTextura = "res/statue-g162b3a07b_640.jpg";
     vk::Image textura_;
     vk::ImageView visaoDaTextura_;
-    vk::Sampler amostradorDaTextura_;
+    vk::Sampler amostrador_;
     vk::DeviceMemory memoriaTextura_;
 };
 }  // namespace smv
