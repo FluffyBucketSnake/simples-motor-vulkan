@@ -295,7 +295,6 @@ class App {
         criarImagemDeProfundidade();
         criarPasseDeRenderizacao();
         criarFramebuffers();
-        criarBuffersDeComandos();
     }
 
     void criarSwapchain() {
