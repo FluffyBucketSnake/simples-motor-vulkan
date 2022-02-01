@@ -1250,7 +1250,7 @@ class App {
 
     void atualizar(std::chrono::duration<float, std::chrono::seconds::period>
                        tempoDecorrido) {
-        float rotacaoDaCena = glm::two_pi<float>() * tempoDecorrido.count();
+        float rotacaoDaCena = glm::half_pi<float>() * tempoDecorrido.count();
         pushConstants_.modelo = glm::rotate(glm::identity<glm::mat4>(),
                                             rotacaoDaCena, {0.0f, 1.0f, 0.0f});
     }
