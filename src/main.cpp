@@ -935,6 +935,7 @@ class App {
         glm::vec3 min;
         glm::vec3 max;
 
+        std::unordered_map<Vertice, uint16_t> verticesUnicos;
         for (const auto& forma : formas) {
             for (const auto& indice : forma.mesh.indices) {
                 Vertice vertice{};
@@ -956,11 +957,12 @@ class App {
                     atributos.texcoords[(2 * indiceDaCoordTex) + 0],
                     1.0f - atributos.texcoords[(2 * indiceDaCoordTex) + 1]};
 
-                min = glm::min(min, vertice.posicao);
-                max = glm::max(max, vertice.posicao);
-
-                vertices.push_back(vertice);
-                indices.push_back(static_cast<uint16_t>(indices.size()));
+                if (verticesUnicos.find(vertice) == verticesUnicos.end()) {
+                    verticesUnicos[vertice] =
+                        static_cast<uint16_t>(vertices.size());
+                    vertices.push_back(vertice);
+                }
+                indices.push_back(verticesUnicos[vertice]);
             }
         }
 
