@@ -1395,7 +1395,6 @@ class App {
     }
 
     void destruirContextoDeRenderizacao() {
-        dispositivo_.freeCommandBuffers(poolDeComandos_, buffersDeComandos_);
         for (auto&& framebuffer : framebuffers_) {
             dispositivo_.destroyFramebuffer(framebuffer);
         }
