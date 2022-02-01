@@ -84,7 +84,7 @@ struct OBU {
     glm::mat4 projecao;
 };
 
-struct PushContants {
+struct PushConstants {
     glm::mat4 modelo;
 };
 
@@ -325,6 +325,8 @@ class App {
 
     void criarPoolDeComandos() {
         vk::CommandPoolCreateInfo info;
+        info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer |
+                     vk::CommandPoolCreateFlagBits::eTransient;
         info.queueFamilyIndex = familiaDeGraficos_;
 
         poolDeComandos_ = dispositivo_.createCommandPool(info);
@@ -675,10 +677,14 @@ class App {
     }
 
     void criarLayoutDaPipeline() {
+        vk::PushConstantRange intervalo = {vk::ShaderStageFlagBits::eVertex, 0,
+                                           sizeof(PushConstants)};
+
         vk::PipelineLayoutCreateInfo info;
         info.setLayoutCount = 1;
         info.pSetLayouts = &layoutDoSetDeDescritores_;
-        info.pushConstantRangeCount = 0;
+        info.pushConstantRangeCount = 1;
+        info.pPushConstantRanges = &intervalo;
 
         layoutDaPipeline_ = dispositivo_.createPipelineLayout(info);
     }
@@ -802,12 +808,9 @@ class App {
     }
 
     void criarBuffersDeComandos() {
-        uint32_t numDeFramebuffers =
-            static_cast<uint32_t>(framebuffers_.size());
-
         vk::CommandBufferAllocateInfo info;
         info.commandPool = poolDeComandos_;
-        info.commandBufferCount = numDeFramebuffers;
+        info.commandBufferCount = kMaximoQuadrosEmExecucao;
 
         buffersDeComandos_ = dispositivo_.allocateCommandBuffers(info);
     }
@@ -845,6 +848,9 @@ class App {
 
         vk::Rect2D recorte = {{0, 0}, dimensoesDaSwapchain_};
         bufferDeComandos.setScissor(0, recorte);
+        bufferDeComandos.pushConstants<PushConstants>(
+            layoutDaPipeline_, vk::ShaderStageFlagBits::eVertex, 0,
+            pushConstants_);
 
         bufferDeComandos.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                             layoutDaPipeline_, 0,
@@ -919,9 +925,6 @@ class App {
         criarSetsDeDescritores();
 
         criarBuffersDeComandos();
-        for (size_t i = 0; i < framebuffers_.size(); i++) {
-            gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
-        }
     }
 
     void carregarModelo(const std::string& caminho,
@@ -1247,7 +1250,9 @@ class App {
 
     void atualizar(std::chrono::duration<float, std::chrono::seconds::period>
                        tempoDecorrido) {
-        rotacaoDaCena_ = glm::two_pi<float>() * tempoDecorrido.count();
+        float rotacaoDaCena = glm::two_pi<float>() * tempoDecorrido.count();
+        pushConstants_.modelo = glm::rotate(glm::identity<glm::mat4>(),
+                                            rotacaoDaCena, {0.0f, 1.0f, 0.0f});
     }
 
     void renderizar() {
@@ -1272,7 +1277,11 @@ class App {
 
         dispositivo_.resetFences(cercaAtual);
 
-        submeterParaRenderizar(buffersDeComandos_[indiceDaImagem.value()],
+        vk::CommandBuffer bufferDeComandosAtual =
+            buffersDeComandos_[quadroAtual_];
+        gravarBufferDeComandos(bufferDeComandosAtual,
+                               framebuffers_[indiceDaImagem.value()]);
+        submeterParaRenderizar(bufferDeComandosAtual,
                                semaforoDeImagemDisponivelAtual,
                                semaforoDeRenderizacaoCompletaAtual, cercaAtual);
 
@@ -1349,11 +1358,6 @@ class App {
         destruirContextoDeRenderizacao();
         criarContextoDeRenderizacao();
         atualizarBufferDaOBU();
-        dispositivo_.freeCommandBuffers(poolDeComandos_, buffersDeComandos_);
-        criarBuffersDeComandos();
-        for (size_t i = 0; i < framebuffers_.size(); i++) {
-            gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
-        }
         precisaRecriarContextoDeRenderizacao_ = false;
     }
 
@@ -1495,6 +1499,7 @@ class App {
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 
+    PushConstants pushConstants_;
     OBU obu_;
     vk::Buffer bufferDoOBU_;
     vk::DeviceMemory memoriaBufferDoOBU_;
@@ -1504,8 +1509,6 @@ class App {
     vk::ImageView visaoDaTextura_;
     vk::Sampler amostrador_;
     vk::DeviceMemory memoriaTextura_;
-
-    float rotacaoDaCena_ = 0.0f;
 };
 }  // namespace smv
 
