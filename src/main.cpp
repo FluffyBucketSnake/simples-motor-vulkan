@@ -936,9 +936,6 @@ class App {
             throw std::runtime_error("Aviso: " + aviso + " Erro: " + erro);
         }
 
-        glm::vec3 min;
-        glm::vec3 max;
-
         std::unordered_map<Vertice, uint16_t> verticesUnicos;
         for (const auto& forma : formas) {
             for (const auto& indice : forma.mesh.indices) {
@@ -1237,7 +1234,9 @@ class App {
             auto tempoAtual = std::chrono::system_clock::now();
             auto tempoDecorrido = tempoAtual - tempoInicial;
             glfwPollEvents();
-            atualizar(std::chrono::duration<float, std::chrono::seconds>(tempoDecorrido));
+            atualizar(
+                std::chrono::duration<float, std::chrono::seconds::period>(
+                    tempoDecorrido));
             renderizar();
             if (precisaRecriarContextoDeRenderizacao_) {
                 recriarContextoDeRenderizacao();
@@ -1246,8 +1245,9 @@ class App {
         dispositivo_.waitIdle();
     }
 
-    void atualizar(std::chrono::duration<float, std::chrono::seconds> tempoDecorrido) {
-        rotacao_ = glm::two_pi<float>() * tempoDecorrido;
+    void atualizar(std::chrono::duration<float, std::chrono::seconds::period>
+                       tempoDecorrido) {
+        rotacaoDaCena_ = glm::two_pi<float>() * tempoDecorrido.count();
     }
 
     void renderizar() {

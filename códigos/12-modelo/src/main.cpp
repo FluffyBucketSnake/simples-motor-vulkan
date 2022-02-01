@@ -932,9 +932,6 @@ class App {
             throw std::runtime_error("Aviso: " + aviso + " Erro: " + erro);
         }
 
-        glm::vec3 min;
-        glm::vec3 max;
-
         std::unordered_map<Vertice, uint16_t> verticesUnicos;
         for (const auto& forma : formas) {
             for (const auto& indice : forma.mesh.indices) {
