@@ -827,7 +827,7 @@ class App {
         bufferDeComandos.bindIndexBuffer(bufferDeIndices_, 0,
                                          vk::IndexType::eUint16);
 
-        uint32_t numIndices = static_cast<uint32_t>(kIndices.size());
+        uint32_t numIndices = static_cast<uint32_t>(indices_.size());
         bufferDeComandos.drawIndexed(numIndices, 1, 0, 0, 0);
 
         bufferDeComandos.endRenderPass();
@@ -874,9 +874,10 @@ class App {
     }
 
     void carregarRecursos() {
-        criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer, kVertices,
+        carregarModelo(kCaminhoDoModelo, vertices_, indices_);
+        criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer, vertices_,
                             bufferDeVertices_, memoriaBufferDeVertices_);
-        criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, kIndices,
+        criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, indices_,
                             bufferDeIndices_, memoriaBufferDeIndices_);
 
         carregarTextura(kCaminhoDaTextura, textura_, memoriaTextura_,
@@ -891,6 +892,7 @@ class App {
 
         criarSetsDeDescritores();
 
+        criarBuffersDeComandos();
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
@@ -908,28 +910,40 @@ class App {
             throw std::runtime_error("Aviso: " + aviso + " Erro: " + erro);
         }
 
+        glm::vec3 min;
+        glm::vec3 max;
+
         for (const auto& forma : formas) {
             for (const auto& indice : forma.mesh.indices) {
                 Vertice vertice{};
 
+                uint32_t indiceDoVertice =
+                    static_cast<uint32_t>(indice.vertex_index);
                 vertice.posicao = {
-                    atributos.vertices[(3 * indice.vertex_index) + 0],
-                    atributos.vertices[(3 * indice.vertex_index) + 1],
-                    atributos.vertices[(3 * indice.vertex_index) + 2]};
+                    atributos.vertices[(3 * indiceDoVertice) + 0],
+                    atributos.vertices[(3 * indiceDoVertice) + 1],
+                    atributos.vertices[(3 * indiceDoVertice) + 2]};
 
-                vertice.cor = {atributos.colors[(3 * indice.vertex_index) + 0],
-                               atributos.colors[(3 * indice.vertex_index) + 1],
-                               atributos.colors[(3 * indice.vertex_index) + 2]};
+                vertice.cor = {atributos.colors[(3 * indiceDoVertice) + 0],
+                               atributos.colors[(3 * indiceDoVertice) + 1],
+                               atributos.colors[(3 * indiceDoVertice) + 2]};
 
+                uint32_t indiceDaCoordTex =
+                    static_cast<uint32_t>(indice.texcoord_index);
                 vertice.coordTex = {
-                    atributos.texcoords[(2 * indice.texcoord_index) + 0],
-                    1.0f -
-                        atributos.texcoords[(2 * indice.texcoord_index) + 1]};
+                    atributos.texcoords[(2 * indiceDaCoordTex) + 0],
+                    1.0f - atributos.texcoords[(2 * indiceDaCoordTex) + 1]};
+
+                min = glm::min(min, vertice.posicao);
+                max = glm::max(max, vertice.posicao);
 
                 vertices.push_back(vertice);
-                indices.push_back(indices.size());
+                indices.push_back(static_cast<uint16_t>(indices.size()));
             }
         }
+
+        std::cout << "Min: " << min.x << ' ' << min.y << ' ' << min.z << '\n';
+        std::cout << "Max: " << max.x << ' ' << max.y << ' ' << max.z << std::endl;
     }
 
     template <typename T>
@@ -1150,9 +1164,9 @@ class App {
     void atualizarBufferDaOBU() {
         obu_.modelo = glm::identity<glm::mat4>();
 
-        glm::vec3 posicaoDaCamera = {0.0f, 4.0f, 0.0f};
+        glm::vec3 posicaoDaCamera = {3.0f, 6.0f, 3.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
-        glm::vec3 cimaDaCamera = {0.0f, 0.0f, 1.0f};
+        glm::vec3 cimaDaCamera = {0.0f, 1.0f, 0.0f};
         obu_.visao = glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
         float fovVertical = glm::radians(90.0f);
@@ -1444,15 +1458,13 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeDescritores_;
 
-    std::vector<Vertice> kVertices = {
-        {{-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-        {{-1.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-        {{1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-        {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}}};
+    const std::string kCaminhoDoModelo = "res/pequena_nozinha.obj";
+
+    std::vector<Vertice> vertices_;
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0, 1, 3, 1, 2, 3};
+    std::vector<uint16_t> indices_;
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 
@@ -1460,7 +1472,7 @@ class App {
     vk::Buffer bufferDoOBU_;
     vk::DeviceMemory memoriaBufferDoOBU_;
 
-    std::string kCaminhoDaTextura = "res/statue-g162b3a07b_640.jpg";
+    std::string kCaminhoDaTextura = "res/pequena_nozinha.png";
     vk::Image textura_;
     vk::ImageView visaoDaTextura_;
     vk::Sampler amostrador_;
