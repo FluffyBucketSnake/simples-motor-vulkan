@@ -32,27 +32,15 @@
 
 #include <vulkan/vulkan.hpp>
 
-namespace std {
-template <>
-struct hash<smv::Vertice> {
-    size_t operator()(smv::Vertice const& vertice) const {
-        return ((hash<glm::vec3>()(vertice.posicao) ^
-                 (hash<glm::vec3>()(vertice.cor) << 1)) >>
-                1) ^
-               (hash<glm::vec2>()(vertice.coordTex) << 1);
-    }
-};
-}  // namespace std
-
 namespace smv {
 struct Vertice {
     glm::vec3 posicao;
     glm::vec3 cor;
     glm::vec2 coordTex;
 
-    bool operator==(const Vertice& outro) {
-        (posicao == outro.posicao) && (cor == outro.cor) &&
-            (coordTex == outro.coordTex);
+    bool operator==(const Vertice& outro) const {
+        return (posicao == outro.posicao) && (cor == outro.cor) &&
+               (coordTex == outro.coordTex);
     }
 
     static vk::VertexInputBindingDescription descricaoDeAssociacao() {
@@ -75,7 +63,21 @@ struct Vertice {
                                                 offsetof(Vertice, coordTex)}};
     }
 };
+}  // namespace smv
 
+namespace std {
+template <>
+struct hash<smv::Vertice> {
+    size_t operator()(smv::Vertice const& vertice) const {
+        return ((hash<glm::vec3>()(vertice.posicao) ^
+                 (hash<glm::vec3>()(vertice.cor) << 1)) >>
+                1) ^
+               (hash<glm::vec2>()(vertice.coordTex) << 1);
+    }
+};
+}  // namespace std
+
+namespace smv {
 struct OBU {
     glm::mat4 modelo;
     glm::mat4 visao;
