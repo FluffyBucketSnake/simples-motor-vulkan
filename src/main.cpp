@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -79,9 +80,12 @@ struct hash<smv::Vertice> {
 
 namespace smv {
 struct OBU {
-    glm::mat4 modelo;
     glm::mat4 visao;
     glm::mat4 projecao;
+};
+
+struct PushContants {
+    glm::mat4 modelo;
 };
 
 class App {
@@ -1183,8 +1187,6 @@ class App {
     }
 
     void atualizarBufferDaOBU() {
-        obu_.modelo = glm::identity<glm::mat4>();
-
         glm::vec3 posicaoDaCamera = {-0.2f, 0.5f, -1.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
         glm::vec3 cimaDaCamera = {0.0f, -1.0f, 0.0f};
@@ -1230,9 +1232,12 @@ class App {
     }
 
     void loopPrincipal() {
+        auto tempoInicial = std::chrono::system_clock::now();
         while (!glfwWindowShouldClose(janela_)) {
+            auto tempoAtual = std::chrono::system_clock::now();
+            auto tempoDecorrido = tempoAtual - tempoInicial;
             glfwPollEvents();
-            atualizar();
+            atualizar(std::chrono::duration<float, std::chrono::seconds>(tempoDecorrido));
             renderizar();
             if (precisaRecriarContextoDeRenderizacao_) {
                 recriarContextoDeRenderizacao();
@@ -1241,7 +1246,9 @@ class App {
         dispositivo_.waitIdle();
     }
 
-    void atualizar() {}
+    void atualizar(std::chrono::duration<float, std::chrono::seconds> tempoDecorrido) {
+        rotacao_ = glm::two_pi<float>() * tempoDecorrido;
+    }
 
     void renderizar() {
         auto cercaAtual = cercasDeQuadros_[quadroAtual_];
@@ -1497,6 +1504,8 @@ class App {
     vk::ImageView visaoDaTextura_;
     vk::Sampler amostrador_;
     vk::DeviceMemory memoriaTextura_;
+
+    float rotacaoDaCena_ = 0.0f;
 };
 }  // namespace smv
 
