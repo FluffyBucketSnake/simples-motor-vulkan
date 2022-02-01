@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -15,6 +16,8 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -29,11 +32,28 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace std {
+template <>
+struct hash<smv::Vertice> {
+    size_t operator()(smv::Vertice const& vertice) const {
+        return ((hash<glm::vec3>()(vertice.posicao) ^
+                 (hash<glm::vec3>()(vertice.cor) << 1)) >>
+                1) ^
+               (hash<glm::vec2>()(vertice.coordTex) << 1);
+    }
+};
+}  // namespace std
+
 namespace smv {
 struct Vertice {
     glm::vec3 posicao;
     glm::vec3 cor;
     glm::vec2 coordTex;
+
+    bool operator==(const Vertice& outro) {
+        (posicao == outro.posicao) && (cor == outro.cor) &&
+            (coordTex == outro.coordTex);
+    }
 
     static vk::VertexInputBindingDescription descricaoDeAssociacao() {
         vk::VertexInputBindingDescription descricaoDeAssociacao;
