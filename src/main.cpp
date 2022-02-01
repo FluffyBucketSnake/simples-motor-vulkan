@@ -965,9 +965,6 @@ class App {
                 indices.push_back(verticesUnicos[vertice]);
             }
         }
-
-        std::cout << "Min: " << min.x << ' ' << min.y << ' ' << min.z << '\n';
-        std::cout << "Max: " << max.x << ' ' << max.y << ' ' << max.z << std::endl;
     }
 
     template <typename T>
