@@ -1188,9 +1188,9 @@ class App {
     void atualizarBufferDaOBU() {
         obu_.modelo = glm::identity<glm::mat4>();
 
-        glm::vec3 posicaoDaCamera = {3.0f, 6.0f, 3.0f};
+        glm::vec3 posicaoDaCamera = {-0.2f, 0.5f, -1.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
-        glm::vec3 cimaDaCamera = {0.0f, 1.0f, 0.0f};
+        glm::vec3 cimaDaCamera = {0.0f, -1.0f, 0.0f};
         obu_.visao = glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
         float fovVertical = glm::radians(90.0f);
