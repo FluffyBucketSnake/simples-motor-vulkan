@@ -1158,7 +1158,6 @@ class App {
     void loopPrincipal() {
         while (!glfwWindowShouldClose(janela_)) {
             glfwPollEvents();
-            atualizar();
             renderizar();
             if (precisaRecriarContextoDeRenderizacao_) {
                 recriarContextoDeRenderizacao();
@@ -1166,8 +1165,6 @@ class App {
         }
         dispositivo_.waitIdle();
     }
-
-    void atualizar() {}
 
     void renderizar() {
         auto cercaAtual = cercasDeQuadros_[quadroAtual_];
