@@ -509,4 +509,4 @@ FodyWeavers.xsd
 build/
 
 # Recursos
-!res/*.obj
+!**/*/res/*.obj
