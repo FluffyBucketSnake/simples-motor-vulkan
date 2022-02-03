@@ -54,9 +54,9 @@ struct Vertice {
 };
 
 struct OBU {
-    glm::mat4 modelo;
-    glm::mat4 visao;
-    glm::mat4 projecao;
+    alignas(16) glm::mat4 modelo;
+    alignas(16) glm::mat4 visao;
+    alignas(16) glm::mat4 projecao;
 };
 
 class App {
