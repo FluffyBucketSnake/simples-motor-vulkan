@@ -818,6 +818,7 @@ class App {
     void gravarBufferDeComandos(vk::CommandBuffer bufferDeComandos,
                                 vk::Framebuffer framebuffer) {
         vk::CommandBufferBeginInfo info;
+        info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
         bufferDeComandos.begin(info);
 
         std::array<vk::ClearValue, 2> valoresDeLimpeza = {
