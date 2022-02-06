@@ -6,4 +6,6 @@ Um motor de renderização em tempo real feito com Vulkan e C++, utilizado como 
 
 - Limpar a seção sobre projeção;
 
-- Criar código base para o começo do motor.
+- Criar código base para o começo do motor;
+
+- Corrigir geometrias na tese.
