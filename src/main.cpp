@@ -1189,7 +1189,7 @@ class App {
     void atualizarBufferDaOBU() {
         glm::vec3 posicaoDaCamera = {-0.2f, -0.5f, -1.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
-        glm::vec3 cimaDaCamera = {0, -1, 0};
+        glm::vec3 cimaDaCamera = {0.0f, -1.0f, 0.0f};
         obu_.visao = glm::scale(glm::identity<glm::mat4>(), {1, -1, -1}) *
                      glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 

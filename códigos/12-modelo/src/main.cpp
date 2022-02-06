@@ -12,7 +12,6 @@
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -1182,17 +1181,19 @@ class App {
     void atualizarBufferDaOBU() {
         obu_.modelo = glm::identity<glm::mat4>();
 
-        glm::vec3 posicaoDaCamera = {-0.2f, 0.5f, -1.0f};
+        glm::vec3 posicaoDaCamera = {-0.2f, -0.5f, -1.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
         glm::vec3 cimaDaCamera = {0.0f, -1.0f, 0.0f};
-        obu_.visao = glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
+        obu_.visao = glm::scale(glm::identity<glm::mat4>(), {1, -1, -1}) *
+                     glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
         float fovVertical = glm::radians(90.0f);
         float proporcaoDaTela =
             static_cast<float>(dimensoesDaSwapchain_.width) /
             static_cast<float>(dimensoesDaSwapchain_.height);
         obu_.projecao =
-            glm::perspective(fovVertical, proporcaoDaTela, 0.1f, 100.0f);
+            glm::perspective(fovVertical, proporcaoDaTela, 0.1f, 100.0f) *
+            glm::scale(glm::identity<glm::mat4>(), {1, 1, -1});
 
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
     }

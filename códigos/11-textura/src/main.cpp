@@ -11,7 +11,6 @@
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -888,6 +887,7 @@ class App {
 
         criarSetsDeDescritores();
 
+        criarBuffersDeComandos();
         for (size_t i = 0; i < framebuffers_.size(); i++) {
             gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
         }
@@ -1111,17 +1111,19 @@ class App {
     void atualizarBufferDaOBU() {
         obu_.modelo = glm::identity<glm::mat4>();
 
-        glm::vec3 posicaoDaCamera = {0.0f, 4.0f, 0.0f};
+        glm::vec3 posicaoDaCamera = {0.0f, -4.0f, 0.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
-        glm::vec3 cimaDaCamera = {0.0f, 0.0f, 1.0f};
-        obu_.visao = glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
+        glm::vec3 cimaDaCamera = {0.0f, 0.0f, -1.0f};
+        obu_.visao = glm::scale(glm::identity<glm::mat4>(), {1, -1, -1}) *
+                     glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
         float fovVertical = glm::radians(90.0f);
         float proporcaoDaTela =
             static_cast<float>(dimensoesDaSwapchain_.width) /
             static_cast<float>(dimensoesDaSwapchain_.height);
         obu_.projecao =
-            glm::perspective(fovVertical, proporcaoDaTela, 0.1f, 100.0f);
+            glm::perspective(fovVertical, proporcaoDaTela, 0.1f, 100.0f) *
+            glm::scale(glm::identity<glm::mat4>(), {1, 1, -1});
 
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
     }
@@ -1402,14 +1404,14 @@ class App {
     vk::DescriptorSet setDeDescritores_;
 
     std::vector<Vertice> kVertices = {
-        {{-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-        {{-1.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-        {{1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-        {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}}};
+        {{1, 0, -1}, {1, 1, 1}, {0, 0}},
+        {{1, 0, 1}, {1, 0, 0}, {0, 1}},
+        {{-1, 0, -1}, {0, 1, 0}, {1, 0}},
+        {{-1, 0, 1}, {0, 0, 1}, {1, 1}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0, 1, 3, 1, 2, 3};
+    std::vector<uint16_t> kIndices = {0, 1, 2, 1, 3, 2};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 

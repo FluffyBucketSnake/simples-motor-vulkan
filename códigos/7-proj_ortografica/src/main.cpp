@@ -705,14 +705,14 @@ class App {
 
         obu_.modelo = glm::identity<glm::mat4>();
 
-        glm::vec3 posicaoDaCamera = {0.0f, 2.0f, 0.0f};
+        glm::vec3 posicaoDaCamera = {0.0f, -2.0f, 0.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
-        glm::vec3 cimaDaCamera = {0.0f, 0.0f, 1.0f};
+        glm::vec3 cimaDaCamera = {0.0f, 0.0f, -1.0f};
         obu_.visao = glm::scale(glm::identity<glm::mat4>(), {1, -1, -1}) *
                      glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
         obu_.projecao = glm::scale(glm::identity<glm::mat4>(), {1, -1, 1}) *
-                        glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.0f, 100.0f) *
+                        glm::ortho(-4.0f, 4.0f, 4.0f, -4.0f, 0.0f, 100.0f) *
                         glm::scale(glm::identity<glm::mat4>(), {1, 1, -1});
 
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
@@ -1025,7 +1025,7 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeDescritores_;
 
-    std::vector<Vertice> kVertices = {
+    const std::vector<Vertice> kVertices = {
         {{3, 0, -2}, {1, 0, 0}}, {{3, 0, 2}, {1, 0, 0}},
         {{-1, 0, -2}, {1, 0, 0}},   {{-1, 0, 2}, {1, 0, 0}},
         {{1, 1, -2}, {0, 0, 1}}, {{1, 1, 2}, {0, 0, 1}},
