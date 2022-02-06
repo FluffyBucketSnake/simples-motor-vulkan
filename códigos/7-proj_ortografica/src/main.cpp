@@ -11,7 +11,6 @@
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_LEFT_HANDED
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -705,14 +704,17 @@ class App {
                     bufferDoOBU_, memoriaBufferDoOBU_);
 
         obu_.modelo = glm::identity<glm::mat4>();
-        
+
         glm::vec3 posicaoDaCamera = {0.0f, 2.0f, 0.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
         glm::vec3 cimaDaCamera = {0.0f, 0.0f, 1.0f};
-        obu_.visao = glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
+        obu_.visao = glm::scale(glm::identity<glm::mat4>(), {1, -1, -1}) *
+                     glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
-        obu_.projecao = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.0f, 100.0f);
-        
+        obu_.projecao = glm::scale(glm::identity<glm::mat4>(), {1, -1, 1}) *
+                        glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.0f, 100.0f) *
+                        glm::scale(glm::identity<glm::mat4>(), {1, 1, -1});
+
         atualizarBuffer(bufferDoOBU_, sizeof(OBU), &obu_);
 
         criarSetsDeDescritores();
@@ -1024,18 +1026,14 @@ class App {
     vk::DescriptorSet setDeDescritores_;
 
     std::vector<Vertice> kVertices = {
-        {{-3.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{-3.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{1.0f, 1.0f, 2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{1.0f, 1.0f, -2.0f}, {1.0f, 0.0f, 0.0f}},
-        {{-1.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}},
-        {{-1.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
-        {{3.0f, 0.0f, 2.0f}, {0.0f, 0.0f, 1.0f}},
-        {{3.0f, 0.0f, -2.0f}, {0.0f, 0.0f, 1.0f}}};
+        {{3, 0, -2}, {1, 0, 0}}, {{3, 0, 2}, {1, 0, 0}},
+        {{-1, 0, -2}, {1, 0, 0}},   {{-1, 0, 2}, {1, 0, 0}},
+        {{1, 1, -2}, {0, 0, 1}}, {{1, 1, 2}, {0, 0, 1}},
+        {{-3, 1, -2}, {0, 0, 1}},   {{-3, 1, 2}, {0, 0, 1}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {4, 5, 7, 5, 6, 7, 0, 1, 3, 1, 2, 3};
+    std::vector<uint16_t> kIndices = {4, 5, 6, 5, 7, 6, 0, 1, 2, 1, 3, 2};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 
