@@ -1403,7 +1403,7 @@ class App {
     vk::DescriptorPool poolDeDescritores_;
     vk::DescriptorSet setDeDescritores_;
 
-    std::vector<Vertice> kVertices = {
+    const std::vector<Vertice> kVertices = {
         {{1, 0, -1}, {1, 1, 1}, {0, 0}},
         {{1, 0, 1}, {1, 0, 0}, {0, 1}},
         {{-1, 0, -1}, {0, 1, 0}, {1, 0}},
@@ -1411,7 +1411,7 @@ class App {
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0, 1, 2, 1, 3, 2};
+    const std::vector<uint16_t> kIndices = {0, 1, 2, 1, 3, 2};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 

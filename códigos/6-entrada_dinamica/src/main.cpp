@@ -928,14 +928,15 @@ class App {
     std::array<vk::Fence, kMaximoQuadrosEmExecucao> cercasDeQuadros_;
     std::vector<std::optional<vk::Fence>> imagensEmExecucao_;
 
-    std::vector<Vertice> kVertices = {{{-0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-                                      {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-                                      {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-                                      {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    const std::vector<Vertice> kVertices = {
+        {{-0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0u, 1u, 2u, 1u, 3u, 2u};
+    const std::vector<uint16_t> kIndices = {0u, 1u, 2u, 1u, 3u, 2u};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 };

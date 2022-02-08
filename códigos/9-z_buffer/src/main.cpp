@@ -1183,7 +1183,7 @@ class App {
     vk::Buffer bufferDeVertices_;
     vk::DeviceMemory memoriaBufferDeVertices_;
 
-    std::vector<uint16_t> kIndices = {0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6};
+    const std::vector<uint16_t> kIndices = {0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6};
     vk::Buffer bufferDeIndices_;
     vk::DeviceMemory memoriaBufferDeIndices_;
 
