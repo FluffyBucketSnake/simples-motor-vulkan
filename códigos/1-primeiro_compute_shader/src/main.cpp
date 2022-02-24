@@ -2,6 +2,7 @@
 #include <array>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -216,7 +217,7 @@ class App {
         // info.basePipelineHandle = nullptr;
         // info.basePipelineIndex = -1;
 
-        pipeline_ = dispositivo_.createComputePipeline({}, info);
+        pipeline_ = dispositivo_.createComputePipeline({}, info).value;
     }
 
     void criarPoolDeComandos() {
