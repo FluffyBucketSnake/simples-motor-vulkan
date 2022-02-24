@@ -3,6 +3,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -803,7 +804,7 @@ class App {
         info.renderPass = passeDeRenderizacao_;
         info.subpass = 0;
 
-        pipeline_ = dispositivo_.createGraphicsPipeline({}, info);
+        pipeline_ = dispositivo_.createGraphicsPipeline({}, info).value;
     }
 
     void criarBuffersDeComandos() {
@@ -1264,7 +1265,7 @@ class App {
         auto semaforoDeRenderizacaoCompletaAtual =
             semaforosDeRenderizacaoCompleta_[quadroAtual_];
 
-        dispositivo_.waitForFences(cercaAtual, false,
+        std::ignore = dispositivo_.waitForFences(cercaAtual, false,
                                    std::numeric_limits<uint64_t>::max());
 
         auto indiceDaImagem =
@@ -1309,7 +1310,7 @@ class App {
     void esperarCercaDaImagemAtual(uint32_t indiceDaImagem) {
         auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
         if (cercaDaImagemAtual.has_value()) {
-            dispositivo_.waitForFences(cercaDaImagemAtual.value(), false,
+            std::ignore = dispositivo_.waitForFences(cercaDaImagemAtual.value(), false,
                                        std::numeric_limits<uint64_t>::max());
         }
     }
