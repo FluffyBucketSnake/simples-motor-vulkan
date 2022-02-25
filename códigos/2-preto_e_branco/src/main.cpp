@@ -49,7 +49,8 @@ class App {
         if (kAtivarCamadasDeValidacao &&
             !verificarDisponibilidadeDasCamadasDeValidacao()) {
             throw std::runtime_error(
-                "Esta máquina não suporta as camadas de validação "
+                "Esta máquina não suporta as camadas de "
+                "validação "
                 "necessárias.");
         }
 
@@ -65,9 +66,10 @@ class App {
         // info.enabledExtensionCount = 0;
         // info.ppEnabledExtensionNames = nullptr;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         instancia_ = vk::createInstance(info);
@@ -81,7 +83,8 @@ class App {
             bool camadaEncontrada = false;
 
             for (auto&& propriedades : propriedadesDasCamadas) {
-                if (strcmp(camada, propriedades.layerName) == 0) {
+                if (strcmp(camada, propriedades.layerName) ==
+                    0) {
                     camadaEncontrada = true;
                     break;
                 }
@@ -96,11 +99,12 @@ class App {
     }
 
     void escolherDispositivoFisico() {
-        auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
+        auto dispositivosFisicos =
+            instancia_.enumeratePhysicalDevices();
 
-        auto resultado =
-            std::find_if(dispositivosFisicos.begin(),
-                         dispositivosFisicos.end(), verificarDispositivo);
+        auto resultado = std::find_if(
+            dispositivosFisicos.begin(),
+            dispositivosFisicos.end(), verificarDispositivo);
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -145,13 +149,15 @@ class App {
         info.queueCreateInfoCount = 1;
         info.pQueueCreateInfos = &infoComputacao;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
-        filaComputacao_ = dispositivo_.getQueue(familiaComputacao_, 0);
+        filaComputacao_ =
+            dispositivo_.getQueue(familiaComputacao_, 0);
     }
 
     static std::optional<uint32_t> buscarFamiliaDeFilas(
@@ -159,9 +165,11 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia = find_if(
-            familias.begin(), familias.end(),
-            [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia =
+            find_if(familias.begin(), familias.end(),
+                    [tipo](auto familia) {
+                        return familia.queueFlags & tipo;
+                    });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -177,7 +185,8 @@ class App {
         associacaoImagem.descriptorType =
             vk::DescriptorType::eStorageImage;
         associacaoImagem.descriptorCount = 1;
-        associacaoImagem.stageFlags = vk::ShaderStageFlagBits::eCompute;
+        associacaoImagem.stageFlags =
+            vk::ShaderStageFlagBits::eCompute;
         // associacaoImagem.pImmutableSamplers = nullptr;
 
         vk::DescriptorSetLayoutCreateInfo info;
@@ -197,7 +206,8 @@ class App {
         // info.pushConstantRangeCount = 0;
         // info.pPushConstantRanges = nullptr;
 
-        layoutDaPipeline_ = dispositivo_.createPipelineLayout(info);
+        layoutDaPipeline_ =
+            dispositivo_.createPipelineLayout(info);
     }
 
     void criarModuloDoShader() {
@@ -217,8 +227,8 @@ class App {
         vk::ShaderModuleCreateInfo info;
         // info.flags = {}
         info.codeSize = codigoDoShader.size();
-        info.pCode =
-            reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+        info.pCode = reinterpret_cast<const uint32_t*>(
+            codigoDoShader.data());
 
         moduloDoShader_ = dispositivo_.createShaderModule(info);
     }
@@ -238,7 +248,8 @@ class App {
         // info.basePipelineHandle = nullptr;
         // info.basePipelineIndex = -1;
 
-        pipeline_ = dispositivo_.createComputePipeline({}, info).value;
+        pipeline_ =
+            dispositivo_.createComputePipeline({}, info).value;
     }
 
     void criarPoolDeComandos() {
@@ -250,8 +261,9 @@ class App {
     }
 
     void criarPoolDeDescritores() {
-        const auto descritoresTotais = std::array{
-            vk::DescriptorPoolSize{vk::DescriptorType::eStorageImage, 1}};
+        const auto descritoresTotais =
+            std::array{vk::DescriptorPoolSize{
+                vk::DescriptorType::eStorageImage, 1}};
 
         vk::DescriptorPoolCreateInfo info;
         // info.flags = {}
@@ -259,7 +271,8 @@ class App {
         info.poolSizeCount = descritoresTotais.size();
         info.pPoolSizes = descritoresTotais.data();
 
-        poolDeDescritores_ = dispositivo_.createDescriptorPool(info);
+        poolDeDescritores_ =
+            dispositivo_.createDescriptorPool(info);
     }
 
     void alocarSetDeDescritores() {
@@ -270,12 +283,13 @@ class App {
         info.descriptorSetCount = layouts.size();
         info.pSetLayouts = layouts.data();
 
-        setDeEntrada_ = dispositivo_.allocateDescriptorSets(info)[0];
+        setDeEntrada_ =
+            dispositivo_.allocateDescriptorSets(info)[0];
     }
 
     void carregarRecursos() {
-        carregarImagem(kCaminhoDaImagemFonte, imagem_, memoriaImagem_,
-                       dimensoesImagem_);
+        carregarImagem(kCaminhoDaImagemFonte, imagem_,
+                       memoriaImagem_, dimensoesImagem_);
         visaoImagem_ = criarVisaoDeImagem(imagem_);
         atualizarSetDeDescritores();
     }
@@ -285,15 +299,18 @@ class App {
                         vk::DeviceMemory& memoria,
                         vk::Extent3D& dimensoes) {
         int largura, altura, _canais;
-        stbi_uc* pixeis = stbi_load(caminho.c_str(), &largura, &altura,
-                                    &_canais, STBI_rgb_alpha);
+        stbi_uc* pixeis =
+            stbi_load(caminho.c_str(), &largura, &altura,
+                      &_canais, STBI_rgb_alpha);
         if (pixeis == nullptr) {
-            std::cout << "Não foi possível carregar a imagem '" << caminho
-                      << "'." << std::endl;
+            std::cout << "Não foi possível carregar a imagem '"
+                      << caminho << "'." << std::endl;
         }
-        dimensoes = vk::Extent3D{static_cast<uint32_t>(largura),
-                                 static_cast<uint32_t>(altura), 1u};
-        size_t tamanho = dimensoes.width * dimensoes.height * 4u;
+        dimensoes =
+            vk::Extent3D{static_cast<uint32_t>(largura),
+                         static_cast<uint32_t>(altura), 1u};
+        size_t tamanho =
+            dimensoes.width * dimensoes.height * 4u;
 
         criarImagem(vk::Format::eR8G8B8A8Unorm, dimensoes,
                     vk::ImageUsageFlagBits::eTransferDst |
@@ -303,25 +320,29 @@ class App {
 
         vk::Buffer bufferDePreparo;
         vk::DeviceMemory memoriaBufferDePreparo;
-        criarBuffer(vk::BufferUsageFlagBits::eTransferSrc, tamanho,
-                    vk::MemoryPropertyFlagBits::eHostVisible |
-                        vk::MemoryPropertyFlagBits::eHostCoherent,
-                    bufferDePreparo, memoriaBufferDePreparo);
+        criarBuffer(
+            vk::BufferUsageFlagBits::eTransferSrc, tamanho,
+            vk::MemoryPropertyFlagBits::eHostVisible |
+                vk::MemoryPropertyFlagBits::eHostCoherent,
+            bufferDePreparo, memoriaBufferDePreparo);
 
-        void* dados =
-            dispositivo_.mapMemory(memoriaBufferDePreparo, 0, tamanho);
+        void* dados = dispositivo_.mapMemory(
+            memoriaBufferDePreparo, 0, tamanho);
         std::memcpy(dados, pixeis, tamanho);
         dispositivo_.unmapMemory(memoriaBufferDePreparo);
         stbi_image_free(pixeis);
 
-        alterarLayout(imagem, vk::PipelineStageFlagBits::eTopOfPipe,
+        alterarLayout(imagem,
+                      vk::PipelineStageFlagBits::eTopOfPipe,
                       vk::PipelineStageFlagBits::eTransfer, {},
                       vk::AccessFlagBits::eTransferWrite,
                       vk::ImageLayout::eUndefined,
                       vk::ImageLayout::eTransferDstOptimal);
-        copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
+        copiarDeBufferParaImagem(bufferDePreparo, imagem,
+                                 dimensoes.width,
                                  dimensoes.height);
-        alterarLayout(imagem, vk::PipelineStageFlagBits::eTransfer,
+        alterarLayout(imagem,
+                      vk::PipelineStageFlagBits::eTransfer,
                       vk::PipelineStageFlagBits::eComputeShader,
                       vk::AccessFlagBits::eTransferWrite,
                       vk::AccessFlagBits::eShaderRead |
@@ -345,8 +366,9 @@ class App {
         barreira.dstAccessMask = acessoDestino;
         barreira.oldLayout = layoutAntigo;
         barreira.newLayout = layoutNovo;
-        // barreira.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        // barreira.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        // barreira.srcQueueFamilyIndex =
+        // VK_QUEUE_FAMILY_IGNORED; barreira.dstQueueFamilyIndex
+        // = VK_QUEUE_FAMILY_IGNORED;
 
         barreira.image = imagem;
         barreira.subresourceRange.aspectMask =
@@ -357,8 +379,8 @@ class App {
         barreira.subresourceRange.layerCount = 1;
 
         vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
-        comando.pipelineBarrier(estagioFonte, estagioDestino, {}, nullptr,
-                                nullptr, barreira);
+        comando.pipelineBarrier(estagioFonte, estagioDestino,
+                                {}, nullptr, nullptr, barreira);
         finalizarComandoDeUsoUnico(comando);
     }
 
@@ -371,7 +393,8 @@ class App {
             dispositivo_.allocateCommandBuffers(infoAlloc)[0];
 
         vk::CommandBufferBeginInfo infoBegin;
-        infoBegin.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+        infoBegin.flags =
+            vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
         comando.begin(infoBegin);
 
@@ -388,7 +411,8 @@ class App {
         filaComputacao_.submit(infoSubmit, nullptr);
         filaComputacao_.waitIdle();
 
-        dispositivo_.freeCommandBuffers(poolDeComandos_, {comando});
+        dispositivo_.freeCommandBuffers(poolDeComandos_,
+                                        {comando});
     }
 
     void copiarDeBufferParaImagem(vk::Buffer bufferFonte,
@@ -411,9 +435,9 @@ class App {
         regiao.imageExtent = vk::Extent3D{largura, altura, 1u};
 
         vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
-        comando.copyBufferToImage(bufferFonte, imagemDestino,
-                                  vk::ImageLayout::eTransferDstOptimal,
-                                  {regiao});
+        comando.copyBufferToImage(
+            bufferFonte, imagemDestino,
+            vk::ImageLayout::eTransferDstOptimal, {regiao});
         finalizarComandoDeUsoUnico(comando);
     }
 
@@ -441,10 +465,11 @@ class App {
 
         auto requisitosDeMemoria =
             dispositivo_.getImageMemoryRequirements(imagem);
-        auto tipoDeMemoria =
-            buscarTipoDeMemoria(requisitosDeMemoria.memoryTypeBits,
-                                vk::MemoryPropertyFlagBits::eDeviceLocal);
-        memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
+        auto tipoDeMemoria = buscarTipoDeMemoria(
+            requisitosDeMemoria.memoryTypeBits,
+            vk::MemoryPropertyFlagBits::eDeviceLocal);
+        memoria = alocarMemoria(requisitosDeMemoria.size,
+                                tipoDeMemoria);
         dispositivo_.bindImageMemory(imagem, memoria, 0);
     }
 
@@ -485,7 +510,8 @@ class App {
         auto tipoDeMemoria = buscarTipoDeMemoria(
             requisitosDeMemoria.memoryTypeBits, propriedades);
 
-        memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
+        memoria = alocarMemoria(requisitosDeMemoria.size,
+                                tipoDeMemoria);
 
         dispositivo_.bindBufferMemory(buffer, memoria, 0);
     }
@@ -499,15 +525,20 @@ class App {
         return dispositivo_.allocateMemory(infoAlloc);
     }
 
-    uint32_t buscarTipoDeMemoria(uint32_t filtro,
-                                 vk::MemoryPropertyFlags propriedades) {
-        auto tiposDeMemorias = dispositivoFisico_.getMemoryProperties();
-        for (uint32_t i = 0; i < tiposDeMemorias.memoryTypeCount; i++) {
-            const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
+    uint32_t buscarTipoDeMemoria(
+        uint32_t filtro,
+        vk::MemoryPropertyFlags propriedades) {
+        auto tiposDeMemorias =
+            dispositivoFisico_.getMemoryProperties();
+        for (uint32_t i = 0;
+             i < tiposDeMemorias.memoryTypeCount; i++) {
+            const auto& tipoDeMemoria =
+                tiposDeMemorias.memoryTypes[i];
 
             bool passaPeloFiltro = (1u << i) & filtro;
-            bool possuiAsPropriedades = (tipoDeMemoria.propertyFlags &
-                                         propriedades) == propriedades;
+            bool possuiAsPropriedades =
+                (tipoDeMemoria.propertyFlags & propriedades) ==
+                propriedades;
 
             if (passaPeloFiltro && possuiAsPropriedades) {
                 return i;
@@ -529,7 +560,8 @@ class App {
         writeImagem.dstBinding = 0;
         // writeImagem.dstArrayElement = 0;
         writeImagem.descriptorCount = 1;
-        writeImagem.descriptorType = vk::DescriptorType::eStorageImage;
+        writeImagem.descriptorType =
+            vk::DescriptorType::eStorageImage;
         writeImagem.pImageInfo = &infoImagem;
         // writeImagem.pBufferInfo = nullptr;
         // writeImagem.pTexelBufferView = nullptr;
@@ -558,22 +590,25 @@ class App {
         // info.level = vk::CommandBufferLevel::ePrimary;
         info.commandBufferCount = 1;
 
-        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
+        bufferDeComandos_ =
+            dispositivo_.allocateCommandBuffers(info)[0];
     }
 
     void gravarBufferDeComandos() {
         vk::CommandBufferBeginInfo info;
-        info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+        info.flags =
+            vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
         info.pInheritanceInfo = nullptr;
 
         bufferDeComandos_.begin(info);
-        bufferDeComandos_.bindPipeline(vk::PipelineBindPoint::eCompute,
-                                       pipeline_);
+        bufferDeComandos_.bindPipeline(
+            vk::PipelineBindPoint::eCompute, pipeline_);
         bufferDeComandos_.bindDescriptorSets(
-            vk::PipelineBindPoint::eCompute, layoutDaPipeline_, 0,
-            {setDeEntrada_}, {});
+            vk::PipelineBindPoint::eCompute, layoutDaPipeline_,
+            0, {setDeEntrada_}, {});
         bufferDeComandos_.dispatch(dimensoesImagem_.width / 32,
-                                   dimensoesImagem_.height / 32, 1);
+                                   dimensoesImagem_.height / 32,
+                                   1);
         bufferDeComandos_.end();
     }
 
@@ -593,7 +628,8 @@ class App {
     }
 
     void salvarImagem() {
-        alterarLayout(imagem_, vk::PipelineStageFlagBits::eComputeShader,
+        alterarLayout(imagem_,
+                      vk::PipelineStageFlagBits::eComputeShader,
                       vk::PipelineStageFlagBits::eTransfer,
                       vk::AccessFlagBits::eShaderRead |
                           vk::AccessFlagBits::eShaderWrite,
@@ -601,14 +637,15 @@ class App {
                       vk::ImageLayout::eGeneral,
                       vk::ImageLayout::eTransferSrcOptimal);
 
-        size_t tamanho =
-            dimensoesImagem_.width * dimensoesImagem_.height * 4;
+        size_t tamanho = dimensoesImagem_.width *
+                         dimensoesImagem_.height * 4;
         vk::Buffer bufferDestino;
         vk::DeviceMemory memoriaBufferDestino;
-        criarBuffer(vk::BufferUsageFlagBits::eTransferDst, tamanho,
-                    vk::MemoryPropertyFlagBits::eHostCoherent |
-                        vk::MemoryPropertyFlagBits::eHostVisible,
-                    bufferDestino, memoriaBufferDestino);
+        criarBuffer(
+            vk::BufferUsageFlagBits::eTransferDst, tamanho,
+            vk::MemoryPropertyFlagBits::eHostCoherent |
+                vk::MemoryPropertyFlagBits::eHostVisible,
+            bufferDestino, memoriaBufferDestino);
 
         vk::BufferImageCopy regiao;
 
@@ -622,17 +659,18 @@ class App {
         regiao.imageExtent = dimensoesImagem_;
 
         vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
-        comando.copyImageToBuffer(imagem_,
-                                  vk::ImageLayout::eTransferSrcOptimal,
-                                  bufferDestino, {regiao});
+        comando.copyImageToBuffer(
+            imagem_, vk::ImageLayout::eTransferSrcOptimal,
+            bufferDestino, {regiao});
         finalizarComandoDeUsoUnico(comando);
 
-        void* dados =
-            dispositivo_.mapMemory(memoriaBufferDestino, 0, tamanho);
-        stbi_write_jpg(kCaminhoDaImagemDestino.c_str(),
-                       static_cast<int>(dimensoesImagem_.width),
-                       static_cast<int>(dimensoesImagem_.height), 4,
-                       dados, 100);
+        void* dados = dispositivo_.mapMemory(
+            memoriaBufferDestino, 0, tamanho);
+        stbi_write_jpg(
+            kCaminhoDaImagemDestino.c_str(),
+            static_cast<int>(dimensoesImagem_.width),
+            static_cast<int>(dimensoesImagem_.height), 4, dados,
+            100);
         dispositivo_.unmapMemory(memoriaBufferDestino);
 
         dispositivo_.destroyBuffer(bufferDestino);
@@ -649,7 +687,8 @@ class App {
         dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(moduloDoShader_);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
-        dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeEntrada_);
+        dispositivo_.destroyDescriptorSetLayout(
+            layoutDoSetDeEntrada_);
         dispositivo_.destroy();
         instancia_.destroy();
     }

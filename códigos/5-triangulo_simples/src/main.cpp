@@ -44,15 +44,17 @@ class App {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        janela_ = glfwCreateWindow(kLarguraDaJanela, kAlturaDaJanela,
-                                   kTituloDaJanela, nullptr, nullptr);
+        janela_ =
+            glfwCreateWindow(kLarguraDaJanela, kAlturaDaJanela,
+                             kTituloDaJanela, nullptr, nullptr);
     }
 
     void criarInstancia() {
         if (kAtivarCamadasDeValidacao &&
             !verificarDisponibilidadeDasCamadasDeValidacao()) {
             throw std::runtime_error(
-                "Esta máquina não suporta as camadas de validação "
+                "Esta máquina não suporta as camadas de "
+                "validação "
                 "necessárias.");
         }
 
@@ -65,16 +67,18 @@ class App {
 
         uint32_t numDeExtensoesGLFW;
         const char** extensoesGLFW =
-            glfwGetRequiredInstanceExtensions(&numDeExtensoesGLFW);
+            glfwGetRequiredInstanceExtensions(
+                &numDeExtensoesGLFW);
 
         vk::InstanceCreateInfo info;
         info.pApplicationInfo = &infoApp;
         info.enabledExtensionCount = numDeExtensoesGLFW;
         info.ppEnabledExtensionNames = extensoesGLFW;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         instancia_ = vk::createInstance(info);
@@ -88,7 +92,8 @@ class App {
             bool camadaEncontrada = false;
 
             for (auto&& propriedades : propriedadesDasCamadas) {
-                if (strcmp(camada, propriedades.layerName) == 0) {
+                if (strcmp(camada, propriedades.layerName) ==
+                    0) {
                     camadaEncontrada = true;
                     break;
                 }
@@ -104,8 +109,9 @@ class App {
 
     void criarSuperficie() {
         VkSurfaceKHR superficiePura;
-        if (glfwCreateWindowSurface(instancia_, janela_, nullptr,
-                                    &superficiePura) != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(instancia_, janela_,
+                                    nullptr, &superficiePura) !=
+            VK_SUCCESS) {
             throw std::runtime_error(
                 "Não foi possível criar a superfície.");
         }
@@ -113,26 +119,33 @@ class App {
     }
 
     void escolherDispositivoFisico() {
-        auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
-        auto resultado = std::find_if(dispositivosFisicos.begin(),
-                                      dispositivosFisicos.end(),
-                                      [this](vk::PhysicalDevice d) {
-                                          return verificarDispositivo(d);
-                                      });
+        auto dispositivosFisicos =
+            instancia_.enumeratePhysicalDevices();
+        auto resultado =
+            std::find_if(dispositivosFisicos.begin(),
+                         dispositivosFisicos.end(),
+                         [this](vk::PhysicalDevice d) {
+                             return verificarDispositivo(d);
+                         });
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
-                "Não foi encontrado um dispositivo físico compartível.");
+                "Não foi encontrado um dispositivo físico "
+                "compartível.");
         }
 
         dispositivoFisico_ = *resultado;
     }
 
-    bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
-        bool possuiFilas = verificarFilasDoDispositivo(dispositivo);
-        bool suportaExtensoes = verificarSuporteDeExtensoes(dispositivo);
+    bool verificarDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
+        bool possuiFilas =
+            verificarFilasDoDispositivo(dispositivo);
+        bool suportaExtensoes =
+            verificarSuporteDeExtensoes(dispositivo);
         bool adequadoParaSwapchain =
-            suportaExtensoes && verificarSuporteDeSwapchain(dispositivo);
+            suportaExtensoes &&
+            verificarSuporteDeSwapchain(dispositivo);
 
         return possuiFilas && adequadoParaSwapchain;
     }
@@ -145,7 +158,8 @@ class App {
                 .has_value();
 
         bool possuiFilaDeApresentacao =
-            buscarFamiliaDeFilasDePresentacao(dispositivo).has_value();
+            buscarFamiliaDeFilasDePresentacao(dispositivo)
+                .has_value();
 
         return possuiFilaGrafica && possuiFilaDeApresentacao;
     }
@@ -156,7 +170,8 @@ class App {
 
         std::optional<uint32_t> valor = {};
         for (uint32_t i = 0; i < familias.size(); i++) {
-            if (dispositivo.getSurfaceSupportKHR(i, superficie_)) {
+            if (dispositivo.getSurfaceSupportKHR(i,
+                                                 superficie_)) {
                 valor = i;
                 break;
             }
@@ -183,9 +198,11 @@ class App {
     bool verificarSuporteDeSwapchain(
         const vk::PhysicalDevice& dispositivo) {
         bool possuiFormatos =
-            !dispositivo.getSurfaceFormatsKHR(superficie_).empty();
+            !dispositivo.getSurfaceFormatsKHR(superficie_)
+                 .empty();
         bool possuiModosDeApresentacao =
-            !dispositivo.getSurfacePresentModesKHR(superficie_).empty();
+            !dispositivo.getSurfacePresentModesKHR(superficie_)
+                 .empty();
 
         return possuiFormatos && possuiModosDeApresentacao;
     }
@@ -203,21 +220,25 @@ class App {
 
         vk::DeviceCreateInfo info;
         info.pEnabledFeatures = &capacidades;
-        info.queueCreateInfoCount = static_cast<uint32_t>(infos.size());
+        info.queueCreateInfoCount =
+            static_cast<uint32_t>(infos.size());
         info.pQueueCreateInfos = infos.data();
-        info.enabledExtensionCount =
-            static_cast<uint32_t>(kExtensoesDeDispositivo.size());
-        info.ppEnabledExtensionNames = kExtensoesDeDispositivo.data();
+        info.enabledExtensionCount = static_cast<uint32_t>(
+            kExtensoesDeDispositivo.size());
+        info.ppEnabledExtensionNames =
+            kExtensoesDeDispositivo.data();
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
         filaDeApresentacao_ =
             dispositivo_.getQueue(familiaDeApresentacao_, 0);
-        filaDeGraficos_ = dispositivo_.getQueue(familiaDeGraficos_, 0);
+        filaDeGraficos_ =
+            dispositivo_.getQueue(familiaDeGraficos_, 0);
     }
 
     std::vector<uint32_t> obterFamiliaDoDispositivo() {
@@ -227,7 +248,9 @@ class App {
                 .value();
 
         familiaDeApresentacao_ =
-            buscarFamiliaDeFilasDePresentacao(dispositivoFisico_).value();
+            buscarFamiliaDeFilasDePresentacao(
+                dispositivoFisico_)
+                .value();
 
         if (familiaDeApresentacao_ == familiaDeGraficos_) {
             return {familiaDeGraficos_};
@@ -241,9 +264,11 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia = find_if(
-            familias.begin(), familias.end(),
-            [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia =
+            find_if(familias.begin(), familias.end(),
+                    [tipo](auto familia) {
+                        return familia.queueFlags & tipo;
+                    });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -262,19 +287,25 @@ class App {
 
     void criarSwapchain() {
         auto capacidades =
-            dispositivoFisico_.getSurfaceCapabilitiesKHR(superficie_);
+            dispositivoFisico_.getSurfaceCapabilitiesKHR(
+                superficie_);
         auto formatosDisponiveis =
-            dispositivoFisico_.getSurfaceFormatsKHR(superficie_);
+            dispositivoFisico_.getSurfaceFormatsKHR(
+                superficie_);
         auto modosDeApresentacaoDisponiveis =
-            dispositivoFisico_.getSurfacePresentModesKHR(superficie_);
+            dispositivoFisico_.getSurfacePresentModesKHR(
+                superficie_);
 
-        auto formato = escolherFormatoDaSwapchain(formatosDisponiveis);
-        auto modoDeApresentacao =
-            escolherModoDeApresentacao(modosDeApresentacaoDisponiveis);
-        dimensoesDaSwapchain_ = escolherDimensoesDaSwapchain(capacidades);
+        auto formato =
+            escolherFormatoDaSwapchain(formatosDisponiveis);
+        auto modoDeApresentacao = escolherModoDeApresentacao(
+            modosDeApresentacaoDisponiveis);
+        dimensoesDaSwapchain_ =
+            escolherDimensoesDaSwapchain(capacidades);
 
-        uint32_t numeroDeImagens = std::max(capacidades.minImageCount + 1,
-                                            capacidades.maxImageCount);
+        uint32_t numeroDeImagens =
+            std::max(capacidades.minImageCount + 1,
+                     capacidades.maxImageCount);
 
         vk::SwapchainCreateInfoKHR info;
 
@@ -284,18 +315,21 @@ class App {
         info.imageColorSpace = formato.colorSpace;
         info.imageExtent = dimensoesDaSwapchain_;
         info.imageArrayLayers = 1;
-        info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+        info.imageUsage =
+            vk::ImageUsageFlagBits::eColorAttachment;
 
         info.preTransform = capacidades.currentTransform;
-        info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+        info.compositeAlpha =
+            vk::CompositeAlphaFlagBitsKHR::eOpaque;
         info.presentMode = modoDeApresentacao;
         info.clipped = true;
         info.oldSwapchain = nullptr;
 
         if (familiaDeApresentacao_ != familiaDeGraficos_) {
-            std::array<uint32_t, 2> familias{familiaDeApresentacao_,
-                                             familiaDeGraficos_};
-            info.imageSharingMode = vk::SharingMode::eConcurrent;
+            std::array<uint32_t, 2> familias{
+                familiaDeApresentacao_, familiaDeGraficos_};
+            info.imageSharingMode =
+                vk::SharingMode::eConcurrent;
             info.queueFamilyIndexCount =
                 static_cast<uint32_t>(familias.size());
             info.pQueueFamilyIndices = familias.data();
@@ -311,19 +345,23 @@ class App {
 
         imagensDaSwapchain_ =
             dispositivo_.getSwapchainImagesKHR(swapChain_);
-        visoesDasImagensDaSwapchain_.reserve(imagensDaSwapchain_.size());
+        visoesDasImagensDaSwapchain_.reserve(
+            imagensDaSwapchain_.size());
         for (const auto& imagem : imagensDaSwapchain_) {
             visoesDasImagensDaSwapchain_.push_back(
-                criarVisaoDeImagem(imagem, formatoDaSwapchain_));
+                criarVisaoDeImagem(imagem,
+                                   formatoDaSwapchain_));
         }
         imagensEmExecucao_.resize(imagensDaSwapchain_.size());
     }
 
     vk::SurfaceFormatKHR escolherFormatoDaSwapchain(
-        const std::vector<vk::SurfaceFormatKHR>& formatosDisponiveis) {
+        const std::vector<vk::SurfaceFormatKHR>&
+            formatosDisponiveis) {
         for (const auto& formato : formatosDisponiveis) {
             if (formato.format == vk::Format::eB8G8R8A8Srgb &&
-                formato.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+                formato.colorSpace ==
+                    vk::ColorSpaceKHR::eSrgbNonlinear) {
                 return formato;
             }
         }
@@ -336,7 +374,8 @@ class App {
         auto comeco = modosDeApresentacaoDisponiveis.begin();
         auto fim = modosDeApresentacaoDisponiveis.end();
 
-        if (std::find(comeco, fim, vk::PresentModeKHR::eMailbox) != fim) {
+        if (std::find(comeco, fim,
+                      vk::PresentModeKHR::eMailbox) != fim) {
             return vk::PresentModeKHR::eMailbox;
         }
 
@@ -352,16 +391,17 @@ class App {
             int largura, altura;
             glfwGetFramebufferSize(janela_, &largura, &altura);
 
-            vk::Extent2D dimensoes = {static_cast<uint32_t>(largura),
-                                      static_cast<uint32_t>(altura)};
+            vk::Extent2D dimensoes = {
+                static_cast<uint32_t>(largura),
+                static_cast<uint32_t>(altura)};
 
             vk::Extent2D minimo = capacidades.minImageExtent;
             vk::Extent2D maximo = capacidades.maxImageExtent;
 
-            dimensoes.width =
-                std::clamp(dimensoes.width, minimo.width, maximo.width);
-            dimensoes.height = std::clamp(dimensoes.height, minimo.height,
-                                          maximo.height);
+            dimensoes.width = std::clamp(
+                dimensoes.width, minimo.width, maximo.width);
+            dimensoes.height = std::clamp(
+                dimensoes.height, minimo.height, maximo.height);
 
             return dimensoes;
         }
@@ -391,18 +431,22 @@ class App {
         // anexoCor.samples = vk::SampleCountFlagBits::e1;
         anexoCor.loadOp = vk::AttachmentLoadOp::eClear;
         anexoCor.storeOp = vk::AttachmentStoreOp::eStore;
-        anexoCor.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-        anexoCor.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+        anexoCor.stencilLoadOp =
+            vk::AttachmentLoadOp::eDontCare;
+        anexoCor.stencilStoreOp =
+            vk::AttachmentStoreOp::eDontCare;
         anexoCor.initialLayout = vk::ImageLayout::eUndefined;
         anexoCor.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
         vk::AttachmentReference refAnexoCor;
         refAnexoCor.attachment = 0;
-        refAnexoCor.layout = vk::ImageLayout::eColorAttachmentOptimal;
+        refAnexoCor.layout =
+            vk::ImageLayout::eColorAttachmentOptimal;
 
         vk::SubpassDescription subpasse;
         // subpasse.flags = {};
-        // subpasse.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+        // subpasse.pipelineBindPoint =
+        // vk::PipelineBindPoint::eGraphics;
         // subpasse.inputAttachmentCount = 0;
         // subpasse.pInputAttachments = nullptr;
         subpasse.colorAttachmentCount = 1;
@@ -431,7 +475,8 @@ class App {
         info.dependencyCount = 1;
         info.pDependencies = &dependenciaAnexoDeCor;
 
-        passeDeRenderizacao_ = dispositivo_.createRenderPass(info);
+        passeDeRenderizacao_ =
+            dispositivo_.createRenderPass(info);
     }
 
     void criarFramebuffers() {
@@ -461,20 +506,26 @@ class App {
         info.setLayoutCount = 0;
         info.pushConstantRangeCount = 0;
 
-        layoutDaPipeline_ = dispositivo_.createPipelineLayout(info);
+        layoutDaPipeline_ =
+            dispositivo_.createPipelineLayout(info);
     }
 
     void carregarShaders() {
-        shaderDeVertices = carregarShader(kCaminhoShaderDeVertices);
-        shaderDeFragmentos = carregarShader(kCaminhoShaderDeFragmento);
+        shaderDeVertices =
+            carregarShader(kCaminhoShaderDeVertices);
+        shaderDeFragmentos =
+            carregarShader(kCaminhoShaderDeFragmento);
     }
 
-    vk::ShaderModule carregarShader(const std::string& caminho) {
-        std::ifstream arquivoDoShader(caminho, std::ios::binary);
+    vk::ShaderModule carregarShader(
+        const std::string& caminho) {
+        std::ifstream arquivoDoShader(caminho,
+                                      std::ios::binary);
 
         if (!arquivoDoShader.is_open()) {
             throw std::runtime_error(
-                "Não foi possível abrir o arquivo '" + caminho + "'!");
+                "Não foi possível abrir o arquivo '" + caminho +
+                "'!");
         }
 
         std::vector<char> codigoDoShader(
@@ -483,29 +534,30 @@ class App {
 
         vk::ShaderModuleCreateInfo info;
         info.codeSize = codigoDoShader.size();
-        info.pCode =
-            reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+        info.pCode = reinterpret_cast<const uint32_t*>(
+            codigoDoShader.data());
 
         return dispositivo_.createShaderModule(info);
     }
 
     void criarPipeline() {
-        std::array<vk::PipelineShaderStageCreateInfo, 2> estagios{
-            vk::PipelineShaderStageCreateInfo{
-                {},
-                vk::ShaderStageFlagBits::eVertex,
-                shaderDeVertices,
-                "main"},
-            vk::PipelineShaderStageCreateInfo{
-                {},
-                vk::ShaderStageFlagBits::eFragment,
-                shaderDeFragmentos,
-                "main"}};
+        std::array<vk::PipelineShaderStageCreateInfo, 2>
+            estagios{vk::PipelineShaderStageCreateInfo{
+                         {},
+                         vk::ShaderStageFlagBits::eVertex,
+                         shaderDeVertices,
+                         "main"},
+                     vk::PipelineShaderStageCreateInfo{
+                         {},
+                         vk::ShaderStageFlagBits::eFragment,
+                         shaderDeFragmentos,
+                         "main"}};
 
         vk::PipelineVertexInputStateCreateInfo infoVertices;
 
         vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
-        infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
+        infoEntrada.topology =
+            vk::PrimitiveTopology::eTriangleList;
 
         vk::Viewport viewport = {
             0.0f,
@@ -521,15 +573,18 @@ class App {
         infoViewport.scissorCount = 1;
         infoViewport.pScissors = &recorte;
 
-        vk::PipelineRasterizationStateCreateInfo infoRasterizador;
+        vk::PipelineRasterizationStateCreateInfo
+            infoRasterizador;
         infoRasterizador.polygonMode = vk::PolygonMode::eFill;
         infoRasterizador.cullMode = vk::CullModeFlagBits::eBack;
-        infoRasterizador.frontFace = vk::FrontFace::eCounterClockwise;
+        infoRasterizador.frontFace =
+            vk::FrontFace::eCounterClockwise;
         infoRasterizador.lineWidth = 1.0f;
 
         vk::PipelineMultisampleStateCreateInfo infoAmostragem;
 
-        vk::PipelineColorBlendAttachmentState misturaDoAnexoDeCor;
+        vk::PipelineColorBlendAttachmentState
+            misturaDoAnexoDeCor;
         misturaDoAnexoDeCor.colorWriteMask =
             vk::ColorComponentFlagBits::eR |
             vk::ColorComponentFlagBits::eG |
@@ -539,12 +594,15 @@ class App {
 
         // Sobrescrita
         // misturaDoAnexoDeCor.srcColorBlendFactor =
-        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstColorBlendFactor
-        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.colorBlendOp =
-        // vk::BlendOp::eAdd; misturaDoAnexoDeCor.srcAlphaBlendFactor =
-        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor
-        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
-        // vk::BlendOp::eAdd;
+        // vk::BlendFactor::eOne;
+        // misturaDoAnexoDeCor.dstColorBlendFactor =
+        // vk::BlendFactor::eZero;
+        // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcAlphaBlendFactor =
+        // vk::BlendFactor::eOne;
+        // misturaDoAnexoDeCor.dstAlphaBlendFactor =
+        // vk::BlendFactor::eZero;
+        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
 
         // Alpha blending
         // misturaDoAnexoDeCor.srcColorBlendFactor =
@@ -553,9 +611,10 @@ class App {
         //     vk::BlendFactor::eOneMinusSrcAlpha;
         // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
         // misturaDoAnexoDeCor.srcAlphaBlendFactor =
-        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor
-        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
-        // vk::BlendOp::eAdd;
+        // vk::BlendFactor::eOne;
+        // misturaDoAnexoDeCor.dstAlphaBlendFactor =
+        // vk::BlendFactor::eZero;
+        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
 
         vk::PipelineColorBlendStateCreateInfo infoMistura;
         infoMistura.attachmentCount = 1;
@@ -563,7 +622,8 @@ class App {
 
         vk::GraphicsPipelineCreateInfo info;
         // info.flags = {}
-        info.stageCount = static_cast<uint32_t>(estagios.size());
+        info.stageCount =
+            static_cast<uint32_t>(estagios.size());
         info.pStages = estagios.data();
         info.pVertexInputState = &infoVertices;
         info.pInputAssemblyState = &infoEntrada;
@@ -575,7 +635,8 @@ class App {
         info.renderPass = passeDeRenderizacao_;
         info.subpass = 0;
 
-        pipeline_ = dispositivo_.createGraphicsPipeline({}, info);
+        pipeline_ =
+            dispositivo_.createGraphicsPipeline({}, info);
     }
 
     void criarBuffersDeComandos() {
@@ -586,7 +647,8 @@ class App {
         info.commandPool = poolDeComandos_;
         info.commandBufferCount = numDeFramebuffers;
 
-        buffersDeComandos_ = dispositivo_.allocateCommandBuffers(info);
+        buffersDeComandos_ =
+            dispositivo_.allocateCommandBuffers(info);
 
         for (size_t i = 0; i < numDeFramebuffers; i++) {
             gravarBufferDeComandos(buffersDeComandos_[i],
@@ -594,8 +656,9 @@ class App {
         }
     }
 
-    void gravarBufferDeComandos(vk::CommandBuffer bufferDeComandos,
-                                vk::Framebuffer framebuffer) {
+    void gravarBufferDeComandos(
+        vk::CommandBuffer bufferDeComandos,
+        vk::Framebuffer framebuffer) {
         vk::CommandBufferBeginInfo info;
         bufferDeComandos.begin(info);
 
@@ -605,14 +668,15 @@ class App {
         vk::RenderPassBeginInfo infoPasse;
         infoPasse.renderPass = passeDeRenderizacao_;
         infoPasse.framebuffer = framebuffer;
-        infoPasse.renderArea = vk::Rect2D{{0, 0}, dimensoesDaSwapchain_};
+        infoPasse.renderArea =
+            vk::Rect2D{{0, 0}, dimensoesDaSwapchain_};
         infoPasse.clearValueCount = 1;
         infoPasse.pClearValues = &corDeLimpeza;
-        bufferDeComandos.beginRenderPass(infoPasse,
-                                         vk::SubpassContents::eInline);
+        bufferDeComandos.beginRenderPass(
+            infoPasse, vk::SubpassContents::eInline);
 
-        bufferDeComandos.bindPipeline(vk::PipelineBindPoint::eGraphics,
-                                      pipeline_);
+        bufferDeComandos.bindPipeline(
+            vk::PipelineBindPoint::eGraphics, pipeline_);
         bufferDeComandos.draw(3, 1, 0, 0);
 
         bufferDeComandos.endRenderPass();
@@ -628,8 +692,10 @@ class App {
                       semaforosDeRenderizacaoCompleta_.end(),
                       [this]() { return criarSemaforo(); });
         std::generate(
-            cercasDeQuadros_.begin(), cercasDeQuadros_.end(), [this]() {
-                return criarCerca(vk::FenceCreateFlagBits::eSignaled);
+            cercasDeQuadros_.begin(), cercasDeQuadros_.end(),
+            [this]() {
+                return criarCerca(
+                    vk::FenceCreateFlagBits::eSignaled);
             });
     }
 
@@ -659,17 +725,20 @@ class App {
         auto semaforoDeRenderizacaoCompletaAtual =
             semaforosDeRenderizacaoCompleta_[quadroAtual_];
 
-        dispositivo_.waitForFences(cercaAtual, false,
-                                   std::numeric_limits<uint64_t>::max());
+        dispositivo_.waitForFences(
+            cercaAtual, false,
+            std::numeric_limits<uint64_t>::max());
 
         uint32_t indiceDaImagem =
             dispositivo_
                 .acquireNextImageKHR(
-                    swapChain_, std::numeric_limits<uint64_t>::max(),
+                    swapChain_,
+                    std::numeric_limits<uint64_t>::max(),
                     semaforoDeImagemDisponivelAtual, nullptr)
                 .value;
 
-        auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
+        auto& cercaDaImagemAtual =
+            imagensEmExecucao_[indiceDaImagem];
         if (cercaDaImagemAtual.has_value()) {
             dispositivo_.waitForFences(
                 cercaDaImagemAtual.value(), false,
@@ -683,7 +752,8 @@ class App {
             vk::PipelineStageFlagBits::eColorAttachmentOutput;
         vk::SubmitInfo infoSubmissao;
         infoSubmissao.waitSemaphoreCount = 1;
-        infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivelAtual;
+        infoSubmissao.pWaitSemaphores =
+            &semaforoDeImagemDisponivelAtual;
         infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
         infoSubmissao.commandBufferCount = 1;
         infoSubmissao.pCommandBuffers =
@@ -704,14 +774,16 @@ class App {
 
         filaDeApresentacao_.presentKHR(infoApresentacao);
 
-        quadroAtual_ = (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
+        quadroAtual_ =
+            (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
     }
 
     void destruir() {
         for (auto&& cerca : cercasDeQuadros_) {
             dispositivo_.destroyFence(cerca);
         }
-        for (auto&& semaforo : semaforosDeRenderizacaoCompleta_) {
+        for (auto&& semaforo :
+             semaforosDeRenderizacaoCompleta_) {
             dispositivo_.destroySemaphore(semaforo);
         }
         for (auto&& semaforo : semaforosDeImagemDisponivel_) {
@@ -792,7 +864,8 @@ class App {
         semaforosDeImagemDisponivel_;
     std::array<vk::Semaphore, kMaximoQuadrosEmExecucao>
         semaforosDeRenderizacaoCompleta_;
-    std::array<vk::Fence, kMaximoQuadrosEmExecucao> cercasDeQuadros_;
+    std::array<vk::Fence, kMaximoQuadrosEmExecucao>
+        cercasDeQuadros_;
     std::vector<std::optional<vk::Fence>> imagensEmExecucao_;
 };
 }  // namespace smv

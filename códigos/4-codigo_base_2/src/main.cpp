@@ -39,15 +39,17 @@ class App {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        janela_ = glfwCreateWindow(kLarguraDaJanela, kAlturaDaJanela,
-                                   kTituloDaJanela, nullptr, nullptr);
+        janela_ =
+            glfwCreateWindow(kLarguraDaJanela, kAlturaDaJanela,
+                             kTituloDaJanela, nullptr, nullptr);
     }
 
     void criarInstancia() {
         if (kAtivarCamadasDeValidacao &&
             !verificarDisponibilidadeDasCamadasDeValidacao()) {
             throw std::runtime_error(
-                "Esta máquina não suporta as camadas de validação "
+                "Esta máquina não suporta as camadas de "
+                "validação "
                 "necessárias.");
         }
 
@@ -60,16 +62,18 @@ class App {
 
         uint32_t numDeExtensoesGLFW;
         const char** extensoesGLFW =
-            glfwGetRequiredInstanceExtensions(&numDeExtensoesGLFW);
+            glfwGetRequiredInstanceExtensions(
+                &numDeExtensoesGLFW);
 
         vk::InstanceCreateInfo info;
         info.pApplicationInfo = &infoApp;
         info.enabledExtensionCount = numDeExtensoesGLFW;
         info.ppEnabledExtensionNames = extensoesGLFW;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         instancia_ = vk::createInstance(info);
@@ -83,7 +87,8 @@ class App {
             bool camadaEncontrada = false;
 
             for (auto&& propriedades : propriedadesDasCamadas) {
-                if (strcmp(camada, propriedades.layerName) == 0) {
+                if (strcmp(camada, propriedades.layerName) ==
+                    0) {
                     camadaEncontrada = true;
                     break;
                 }
@@ -99,8 +104,9 @@ class App {
 
     void criarSuperficie() {
         VkSurfaceKHR superficiePura;
-        if (glfwCreateWindowSurface(instancia_, janela_, nullptr,
-                                    &superficiePura) != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(instancia_, janela_,
+                                    nullptr, &superficiePura) !=
+            VK_SUCCESS) {
             throw std::runtime_error(
                 "Não foi possível criar a superfície.");
         }
@@ -108,26 +114,33 @@ class App {
     }
 
     void escolherDispositivoFisico() {
-        auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
-        auto resultado = std::find_if(dispositivosFisicos.begin(),
-                                      dispositivosFisicos.end(),
-                                      [this](vk::PhysicalDevice d) {
-                                          return verificarDispositivo(d);
-                                      });
+        auto dispositivosFisicos =
+            instancia_.enumeratePhysicalDevices();
+        auto resultado =
+            std::find_if(dispositivosFisicos.begin(),
+                         dispositivosFisicos.end(),
+                         [this](vk::PhysicalDevice d) {
+                             return verificarDispositivo(d);
+                         });
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
-                "Não foi encontrado um dispositivo físico compartível.");
+                "Não foi encontrado um dispositivo físico "
+                "compartível.");
         }
 
         dispositivoFisico_ = *resultado;
     }
 
-    bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
-        bool possuiFilas = verificarFilasDoDispositivo(dispositivo);
-        bool suportaExtensoes = verificarSuporteDeExtensoes(dispositivo);
+    bool verificarDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
+        bool possuiFilas =
+            verificarFilasDoDispositivo(dispositivo);
+        bool suportaExtensoes =
+            verificarSuporteDeExtensoes(dispositivo);
         bool adequadoParaSwapchain =
-            suportaExtensoes && verificarSuporteDeSwapchain(dispositivo);
+            suportaExtensoes &&
+            verificarSuporteDeSwapchain(dispositivo);
 
         return possuiFilas && adequadoParaSwapchain;
     }
@@ -140,7 +153,8 @@ class App {
                 .has_value();
 
         bool possuiFilaDeApresentacao =
-            buscarFamiliaDeFilasDePresentacao(dispositivo).has_value();
+            buscarFamiliaDeFilasDePresentacao(dispositivo)
+                .has_value();
 
         return possuiFilaGrafica && possuiFilaDeApresentacao;
     }
@@ -151,7 +165,8 @@ class App {
 
         std::optional<uint32_t> valor = {};
         for (uint32_t i = 0; i < familias.size(); i++) {
-            if (dispositivo.getSurfaceSupportKHR(i, superficie_)) {
+            if (dispositivo.getSurfaceSupportKHR(i,
+                                                 superficie_)) {
                 valor = i;
                 break;
             }
@@ -178,9 +193,11 @@ class App {
     bool verificarSuporteDeSwapchain(
         const vk::PhysicalDevice& dispositivo) {
         bool possuiFormatos =
-            !dispositivo.getSurfaceFormatsKHR(superficie_).empty();
+            !dispositivo.getSurfaceFormatsKHR(superficie_)
+                 .empty();
         bool possuiModosDeApresentacao =
-            !dispositivo.getSurfacePresentModesKHR(superficie_).empty();
+            !dispositivo.getSurfacePresentModesKHR(superficie_)
+                 .empty();
 
         return possuiFormatos && possuiModosDeApresentacao;
     }
@@ -198,21 +215,25 @@ class App {
 
         vk::DeviceCreateInfo info;
         info.pEnabledFeatures = &capacidades;
-        info.queueCreateInfoCount = static_cast<uint32_t>(infos.size());
+        info.queueCreateInfoCount =
+            static_cast<uint32_t>(infos.size());
         info.pQueueCreateInfos = infos.data();
-        info.enabledExtensionCount =
-            static_cast<uint32_t>(kExtensoesDeDispositivo.size());
-        info.ppEnabledExtensionNames = kExtensoesDeDispositivo.data();
+        info.enabledExtensionCount = static_cast<uint32_t>(
+            kExtensoesDeDispositivo.size());
+        info.ppEnabledExtensionNames =
+            kExtensoesDeDispositivo.data();
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
         filaDeApresentacao_ =
             dispositivo_.getQueue(familiaDeApresentacao_, 0);
-        filaDeGraficos_ = dispositivo_.getQueue(familiaDeGraficos_, 0);
+        filaDeGraficos_ =
+            dispositivo_.getQueue(familiaDeGraficos_, 0);
     }
 
     std::vector<uint32_t> obterFamiliaDoDispositivo() {
@@ -222,7 +243,9 @@ class App {
                 .value();
 
         familiaDeApresentacao_ =
-            buscarFamiliaDeFilasDePresentacao(dispositivoFisico_).value();
+            buscarFamiliaDeFilasDePresentacao(
+                dispositivoFisico_)
+                .value();
 
         if (familiaDeApresentacao_ == familiaDeGraficos_) {
             return {familiaDeGraficos_};
@@ -236,9 +259,11 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia = find_if(
-            familias.begin(), familias.end(),
-            [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia =
+            find_if(familias.begin(), familias.end(),
+                    [tipo](auto familia) {
+                        return familia.queueFlags & tipo;
+                    });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -257,19 +282,25 @@ class App {
 
     void criarSwapchain() {
         auto capacidades =
-            dispositivoFisico_.getSurfaceCapabilitiesKHR(superficie_);
+            dispositivoFisico_.getSurfaceCapabilitiesKHR(
+                superficie_);
         auto formatosDisponiveis =
-            dispositivoFisico_.getSurfaceFormatsKHR(superficie_);
+            dispositivoFisico_.getSurfaceFormatsKHR(
+                superficie_);
         auto modosDeApresentacaoDisponiveis =
-            dispositivoFisico_.getSurfacePresentModesKHR(superficie_);
+            dispositivoFisico_.getSurfacePresentModesKHR(
+                superficie_);
 
-        auto formato = escolherFormatoDaSwapchain(formatosDisponiveis);
-        auto modoDeApresentacao =
-            escolherModoDeApresentacao(modosDeApresentacaoDisponiveis);
-        dimensoesDaSwapchain_ = escolherDimensoesDaSwapchain(capacidades);
+        auto formato =
+            escolherFormatoDaSwapchain(formatosDisponiveis);
+        auto modoDeApresentacao = escolherModoDeApresentacao(
+            modosDeApresentacaoDisponiveis);
+        dimensoesDaSwapchain_ =
+            escolherDimensoesDaSwapchain(capacidades);
 
-        uint32_t numeroDeImagens = std::max(capacidades.minImageCount + 1,
-                                            capacidades.maxImageCount);
+        uint32_t numeroDeImagens =
+            std::max(capacidades.minImageCount + 1,
+                     capacidades.maxImageCount);
 
         vk::SwapchainCreateInfoKHR info;
 
@@ -279,18 +310,21 @@ class App {
         info.imageColorSpace = formato.colorSpace;
         info.imageExtent = dimensoesDaSwapchain_;
         info.imageArrayLayers = 1;
-        info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+        info.imageUsage =
+            vk::ImageUsageFlagBits::eColorAttachment;
 
         info.preTransform = capacidades.currentTransform;
-        info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+        info.compositeAlpha =
+            vk::CompositeAlphaFlagBitsKHR::eOpaque;
         info.presentMode = modoDeApresentacao;
         info.clipped = true;
         info.oldSwapchain = nullptr;
 
         if (familiaDeApresentacao_ != familiaDeGraficos_) {
-            std::array<uint32_t, 2> familias{familiaDeApresentacao_,
-                                             familiaDeGraficos_};
-            info.imageSharingMode = vk::SharingMode::eConcurrent;
+            std::array<uint32_t, 2> familias{
+                familiaDeApresentacao_, familiaDeGraficos_};
+            info.imageSharingMode =
+                vk::SharingMode::eConcurrent;
             info.queueFamilyIndexCount =
                 static_cast<uint32_t>(familias.size());
             info.pQueueFamilyIndices = familias.data();
@@ -306,18 +340,22 @@ class App {
 
         imagensDaSwapchain_ =
             dispositivo_.getSwapchainImagesKHR(swapChain_);
-        visoesDasImagensDaSwapchain_.reserve(imagensDaSwapchain_.size());
+        visoesDasImagensDaSwapchain_.reserve(
+            imagensDaSwapchain_.size());
         for (const auto& imagem : imagensDaSwapchain_) {
             visoesDasImagensDaSwapchain_.push_back(
-                criarVisaoDeImagem(imagem, formatoDaSwapchain_));
+                criarVisaoDeImagem(imagem,
+                                   formatoDaSwapchain_));
         }
     }
 
     vk::SurfaceFormatKHR escolherFormatoDaSwapchain(
-        const std::vector<vk::SurfaceFormatKHR>& formatosDisponiveis) {
+        const std::vector<vk::SurfaceFormatKHR>&
+            formatosDisponiveis) {
         for (const auto& formato : formatosDisponiveis) {
             if (formato.format == vk::Format::eB8G8R8A8Srgb &&
-                formato.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+                formato.colorSpace ==
+                    vk::ColorSpaceKHR::eSrgbNonlinear) {
                 return formato;
             }
         }
@@ -330,7 +368,8 @@ class App {
         auto comeco = modosDeApresentacaoDisponiveis.begin();
         auto fim = modosDeApresentacaoDisponiveis.end();
 
-        if (std::find(comeco, fim, vk::PresentModeKHR::eMailbox) != fim) {
+        if (std::find(comeco, fim,
+                      vk::PresentModeKHR::eMailbox) != fim) {
             return vk::PresentModeKHR::eMailbox;
         }
 
@@ -346,16 +385,17 @@ class App {
             int largura, altura;
             glfwGetFramebufferSize(janela_, &largura, &altura);
 
-            vk::Extent2D dimensoes = {static_cast<uint32_t>(largura),
-                                      static_cast<uint32_t>(altura)};
+            vk::Extent2D dimensoes = {
+                static_cast<uint32_t>(largura),
+                static_cast<uint32_t>(altura)};
 
             vk::Extent2D minimo = capacidades.minImageExtent;
             vk::Extent2D maximo = capacidades.maxImageExtent;
 
-            dimensoes.width =
-                std::clamp(dimensoes.width, minimo.width, maximo.width);
-            dimensoes.height = std::clamp(dimensoes.height, minimo.height,
-                                          maximo.height);
+            dimensoes.width = std::clamp(
+                dimensoes.width, minimo.width, maximo.width);
+            dimensoes.height = std::clamp(
+                dimensoes.height, minimo.height, maximo.height);
 
             return dimensoes;
         }
@@ -385,18 +425,22 @@ class App {
         // anexoCor.samples = vk::SampleCountFlagBits::e1;
         anexoCor.loadOp = vk::AttachmentLoadOp::eClear;
         anexoCor.storeOp = vk::AttachmentStoreOp::eStore;
-        anexoCor.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-        anexoCor.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+        anexoCor.stencilLoadOp =
+            vk::AttachmentLoadOp::eDontCare;
+        anexoCor.stencilStoreOp =
+            vk::AttachmentStoreOp::eDontCare;
         anexoCor.initialLayout = vk::ImageLayout::eUndefined;
         anexoCor.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
         vk::AttachmentReference refAnexoCor;
         refAnexoCor.attachment = 0;
-        refAnexoCor.layout = vk::ImageLayout::eColorAttachmentOptimal;
+        refAnexoCor.layout =
+            vk::ImageLayout::eColorAttachmentOptimal;
 
         vk::SubpassDescription subpasse;
         // subpasse.flags = {};
-        // subpasse.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+        // subpasse.pipelineBindPoint =
+        // vk::PipelineBindPoint::eGraphics;
         // subpasse.inputAttachmentCount = 0;
         // subpasse.pInputAttachments = nullptr;
         subpasse.colorAttachmentCount = 1;
@@ -414,7 +458,8 @@ class App {
         // info.dependencyCount = 0;
         // info.pDependencies = nullptr;
 
-        passeDeRenderizacao_ = dispositivo_.createRenderPass(info);
+        passeDeRenderizacao_ =
+            dispositivo_.createRenderPass(info);
     }
 
     void criarFramebuffers() {

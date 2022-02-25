@@ -37,7 +37,8 @@ class App {
         if (kAtivarCamadasDeValidacao &&
             !verificarDisponibilidadeDasCamadasDeValidacao()) {
             throw std::runtime_error(
-                "Esta máquina não suporta as camadas de validação "
+                "Esta máquina não suporta as camadas de "
+                "validação "
                 "necessárias.");
         }
 
@@ -53,9 +54,10 @@ class App {
         // info.enabledExtensionCount = 0;
         // info.ppEnabledExtensionNames = nullptr;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         instancia_ = vk::createInstance(info);
@@ -69,7 +71,8 @@ class App {
             bool camadaEncontrada = false;
 
             for (auto&& propriedades : propriedadesDasCamadas) {
-                if (strcmp(camada, propriedades.layerName) == 0) {
+                if (strcmp(camada, propriedades.layerName) ==
+                    0) {
                     camadaEncontrada = true;
                     break;
                 }
@@ -84,15 +87,17 @@ class App {
     }
 
     void escolherDispositivoFisico() {
-        auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
+        auto dispositivosFisicos =
+            instancia_.enumeratePhysicalDevices();
 
-        auto resultado =
-            std::find_if(dispositivosFisicos.begin(),
-                         dispositivosFisicos.end(), verificarDispositivo);
+        auto resultado = std::find_if(
+            dispositivosFisicos.begin(),
+            dispositivosFisicos.end(), verificarDispositivo);
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
-                "Não foi encontrado um dispositivo físico compartível.");
+                "Não foi encontrado um dispositivo físico "
+                "compartível.");
         }
 
         dispositivoFisico_ = *resultado;
@@ -132,13 +137,15 @@ class App {
         info.queueCreateInfoCount = 1;
         info.pQueueCreateInfos = &infoComputacao;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
-        filaComputacao_ = dispositivo_.getQueue(familiaComputacao_, 0);
+        filaComputacao_ =
+            dispositivo_.getQueue(familiaComputacao_, 0);
     }
 
     static std::optional<uint32_t> buscarFamiliaDeFilas(
@@ -146,9 +153,11 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia = find_if(
-            familias.begin(), familias.end(),
-            [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia =
+            find_if(familias.begin(), familias.end(),
+                    [tipo](auto familia) {
+                        return familia.queueFlags & tipo;
+                    });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -164,7 +173,8 @@ class App {
         associacaoBuffer.descriptorType =
             vk::DescriptorType::eStorageBuffer;
         associacaoBuffer.descriptorCount = 1;
-        associacaoBuffer.stageFlags = vk::ShaderStageFlagBits::eCompute;
+        associacaoBuffer.stageFlags =
+            vk::ShaderStageFlagBits::eCompute;
         // associacaoBuffer.pImmutableSamplers = nullptr;
 
         vk::DescriptorSetLayoutCreateInfo info;
@@ -184,7 +194,8 @@ class App {
         // info.pushConstantRangeCount = 0;
         // info.pPushConstantRanges = nullptr;
 
-        layoutDaPipeline_ = dispositivo_.createPipelineLayout(info);
+        layoutDaPipeline_ =
+            dispositivo_.createPipelineLayout(info);
     }
 
     void criarModuloDoShader() {
@@ -204,8 +215,8 @@ class App {
         vk::ShaderModuleCreateInfo info;
         // info.flags = {}
         info.codeSize = codigoDoShader.size();
-        info.pCode =
-            reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+        info.pCode = reinterpret_cast<const uint32_t*>(
+            codigoDoShader.data());
 
         moduloDoShader_ = dispositivo_.createShaderModule(info);
     }
@@ -225,7 +236,8 @@ class App {
         // info.basePipelineHandle = nullptr;
         // info.basePipelineIndex = -1;
 
-        pipeline_ = dispositivo_.createComputePipeline({}, info).value;
+        pipeline_ =
+            dispositivo_.createComputePipeline({}, info).value;
     }
 
     void criarPoolDeComandos() {
@@ -237,8 +249,9 @@ class App {
     }
 
     void criarPoolDeDescritores() {
-        const auto descritoresTotais = std::array{vk::DescriptorPoolSize{
-            vk::DescriptorType::eStorageBuffer, 1}};
+        const auto descritoresTotais =
+            std::array{vk::DescriptorPoolSize{
+                vk::DescriptorType::eStorageBuffer, 1}};
 
         vk::DescriptorPoolCreateInfo info;
         // info.flags = {}
@@ -246,7 +259,8 @@ class App {
         info.poolSizeCount = descritoresTotais.size();
         info.pPoolSizes = descritoresTotais.data();
 
-        poolDeDescritores_ = dispositivo_.createDescriptorPool(info);
+        poolDeDescritores_ =
+            dispositivo_.createDescriptorPool(info);
     }
 
     void alocarSetDeDescritores() {
@@ -257,7 +271,8 @@ class App {
         info.descriptorSetCount = layouts.size();
         info.pSetLayouts = layouts.data();
 
-        setDeEntrada_ = dispositivo_.allocateDescriptorSets(info)[0];
+        setDeEntrada_ =
+            dispositivo_.allocateDescriptorSets(info)[0];
     }
 
     void carregarRecursos() {
@@ -266,16 +281,18 @@ class App {
     }
 
     void criarBufferDeEntrada() {
-        criarBuffer(vk::BufferUsageFlagBits::eStorageBuffer,
-                    kTamanhoDoBuffer,
-                    vk::MemoryPropertyFlagBits::eHostVisible |
-                        vk::MemoryPropertyFlagBits::eHostCoherent,
-                    buffer_, memoriaBuffer_);
+        criarBuffer(
+            vk::BufferUsageFlagBits::eStorageBuffer,
+            kTamanhoDoBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible |
+                vk::MemoryPropertyFlagBits::eHostCoherent,
+            buffer_, memoriaBuffer_);
 
         std::vector<int> dados(kNumDeItens, 4);
-        void* localDaMemoria =
-            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
-        std::memcpy(localDaMemoria, dados.data(), kTamanhoDoBuffer);
+        void* localDaMemoria = dispositivo_.mapMemory(
+            memoriaBuffer_, 0, kTamanhoDoBuffer);
+        std::memcpy(localDaMemoria, dados.data(),
+                    kTamanhoDoBuffer);
         dispositivo_.unmapMemory(memoriaBuffer_);
     }
 
@@ -299,7 +316,8 @@ class App {
         auto tipoDeMemoria = buscarTipoDeMemoria(
             requisitosDeMemoria.memoryTypeBits, propriedades);
 
-        memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
+        memoria = alocarMemoria(requisitosDeMemoria.size,
+                                tipoDeMemoria);
 
         dispositivo_.bindBufferMemory(buffer, memoria, 0);
     }
@@ -313,15 +331,20 @@ class App {
         return dispositivo_.allocateMemory(infoAlloc);
     }
 
-    uint32_t buscarTipoDeMemoria(uint32_t filtro,
-                                 vk::MemoryPropertyFlags propriedades) {
-        auto tiposDeMemorias = dispositivoFisico_.getMemoryProperties();
-        for (uint32_t i = 0; i < tiposDeMemorias.memoryTypeCount; i++) {
-            const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
+    uint32_t buscarTipoDeMemoria(
+        uint32_t filtro,
+        vk::MemoryPropertyFlags propriedades) {
+        auto tiposDeMemorias =
+            dispositivoFisico_.getMemoryProperties();
+        for (uint32_t i = 0;
+             i < tiposDeMemorias.memoryTypeCount; i++) {
+            const auto& tipoDeMemoria =
+                tiposDeMemorias.memoryTypes[i];
 
             bool passaPeloFiltro = (1u << i) & filtro;
-            bool possuiAsPropriedades = (tipoDeMemoria.propertyFlags &
-                                         propriedades) == propriedades;
+            bool possuiAsPropriedades =
+                (tipoDeMemoria.propertyFlags & propriedades) ==
+                propriedades;
 
             if (passaPeloFiltro && possuiAsPropriedades) {
                 return i;
@@ -343,7 +366,8 @@ class App {
         writeBuffer.dstBinding = 0;
         // writeBuffer.dstArrayElement = 0;
         writeBuffer.descriptorCount = 1;
-        writeBuffer.descriptorType = vk::DescriptorType::eStorageBuffer;
+        writeBuffer.descriptorType =
+            vk::DescriptorType::eStorageBuffer;
         // writeBuffer.pImageInfo = nullptr;
         writeBuffer.pBufferInfo = &infoBuffer;
         // writeBuffer.pTexelBufferView = nullptr;
@@ -364,22 +388,25 @@ class App {
         // info.level = vk::CommandBufferLevel::ePrimary;
         info.commandBufferCount = 1;
 
-        bufferDeComandos_ = dispositivo_.allocateCommandBuffers(info)[0];
+        bufferDeComandos_ =
+            dispositivo_.allocateCommandBuffers(info)[0];
     }
 
     void gravarBufferDeComando() {
         vk::CommandBufferBeginInfo info;
-        info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+        info.flags =
+            vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
         info.pInheritanceInfo = nullptr;
 
         bufferDeComandos_.begin(info);
-        bufferDeComandos_.bindPipeline(vk::PipelineBindPoint::eCompute,
-                                       pipeline_);
+        bufferDeComandos_.bindPipeline(
+            vk::PipelineBindPoint::eCompute, pipeline_);
         bufferDeComandos_.bindDescriptorSets(
-            vk::PipelineBindPoint::eCompute, layoutDaPipeline_, 0,
-            {setDeEntrada_}, {});
+            vk::PipelineBindPoint::eCompute, layoutDaPipeline_,
+            0, {setDeEntrada_}, {});
         bufferDeComandos_.dispatch(
-            static_cast<uint32_t>(kNumDeGruposDeTrabalho), 1, 1);
+            static_cast<uint32_t>(kNumDeGruposDeTrabalho), 1,
+            1);
         bufferDeComandos_.end();
     }
 
@@ -398,9 +425,10 @@ class App {
     }
 
     void confirmarResultados() {
-        void* localDaMemoria =
-            dispositivo_.mapMemory(memoriaBuffer_, 0, kTamanhoDoBuffer);
-        auto resultados = reinterpret_cast<const int*>(localDaMemoria);
+        void* localDaMemoria = dispositivo_.mapMemory(
+            memoriaBuffer_, 0, kTamanhoDoBuffer);
+        auto resultados =
+            reinterpret_cast<const int*>(localDaMemoria);
         for (size_t i = 0; i < kNumDeItens; i++) {
             assert(resultados[i] == 8);
         }
@@ -416,7 +444,8 @@ class App {
         dispositivo_.destroyPipeline(pipeline_);
         dispositivo_.destroyShaderModule(moduloDoShader_);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
-        dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeEntrada_);
+        dispositivo_.destroyDescriptorSetLayout(
+            layoutDoSetDeEntrada_);
         dispositivo_.destroy();
         instancia_.destroy();
     }

@@ -30,7 +30,8 @@ class App {
         if (kAtivarCamadasDeValidacao &&
             !verificarDisponibilidadeDasCamadasDeValidacao()) {
             throw std::runtime_error(
-                "Esta máquina não suporta as camadas de validação "
+                "Esta máquina não suporta as camadas de "
+                "validação "
                 "necessárias.");
         }
 
@@ -46,9 +47,10 @@ class App {
         // info.enabledExtensionCount = 0;
         // info.ppEnabledExtensionNames = nullptr;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         instancia_ = vk::createInstance(info);
@@ -62,7 +64,8 @@ class App {
             bool camadaEncontrada = false;
 
             for (auto&& propriedades : propriedadesDasCamadas) {
-                if (strcmp(camada, propriedades.layerName) == 0) {
+                if (strcmp(camada, propriedades.layerName) ==
+                    0) {
                     camadaEncontrada = true;
                     break;
                 }
@@ -77,11 +80,12 @@ class App {
     }
 
     void escolherDispositivoFisico() {
-        auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
+        auto dispositivosFisicos =
+            instancia_.enumeratePhysicalDevices();
 
-        auto resultado =
-            std::find_if(dispositivosFisicos.begin(),
-                         dispositivosFisicos.end(), verificarDispositivo);
+        auto resultado = std::find_if(
+            dispositivosFisicos.begin(),
+            dispositivosFisicos.end(), verificarDispositivo);
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -112,9 +116,10 @@ class App {
         info.pEnabledFeatures = &capacidades;
         info.queueCreateInfoCount = 0;
         if (kAtivarCamadasDeValidacao) {
-            info.enabledLayerCount =
-                static_cast<uint32_t>(kCamadasDeValidacao.size());
-            info.ppEnabledLayerNames = kCamadasDeValidacao.data();
+            info.enabledLayerCount = static_cast<uint32_t>(
+                kCamadasDeValidacao.size());
+            info.ppEnabledLayerNames =
+                kCamadasDeValidacao.data();
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
@@ -125,9 +130,11 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia = find_if(
-            familias.begin(), familias.end(),
-            [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia =
+            find_if(familias.begin(), familias.end(),
+                    [tipo](auto familia) {
+                        return familia.queueFlags & tipo;
+                    });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
