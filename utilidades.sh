@@ -79,7 +79,7 @@ mostrarAlvos() {
 
 mostrarFiltros() {
     local FILTROS=("$@")
-    printf "Executando com %i filtros:\n" "${FILTROS[*]}"
+    printf "Executando com %i filtros:\n" "${#FILTROS[@]}"
     for FILTRO in "${FILTROS[@]}"; do
         printf -- "- %s\n" "${FILTRO}"
     done
@@ -122,6 +122,12 @@ testarAlvos() {
     done
 }
 
+#
+# testar - verifica se todos os exemplos compilam corretamente
+#
+# Parâmetros: um conjunto de filtros REGEX, utilizados para selecionar
+# os testes. Caso seja vazio, executa-se todos os testes.
+#
 cmdTestar() {
     local FILTROS=("$@")
     local ALVOS
@@ -130,7 +136,7 @@ cmdTestar() {
     local ALVOS_A_TESTAR=()
     if [[ -n "${FILTROS[*]}" ]]; then
         mostrarFiltros "${FILTROS[@]}"
-        ALVOS_A_TESTAR=("$(filtrarTodos "${ALVOS[*]}" "${FILTROS[*]}")")
+        IFS=" " read -r -a ALVOS_A_TESTAR <<<"$(filtrarTodos "${ALVOS[*]}" "${FILTROS[*]}")"
         mostrarAlvosATestar "${ALVOS_A_TESTAR[@]}"
     else
         printf "Excutando todos os alvos...\n"
@@ -152,7 +158,7 @@ erroComandoErrado() {
 }
 
 COMANDO="$1"
-PARAMS=("${@/"${COMANDO}"/}")
+PARAMS=("${@:2}")
 case "$1" in
 testar)
     cmdTestar "${PARAMS[@]}"
