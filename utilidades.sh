@@ -68,12 +68,13 @@ prepararMontagem() {
 
 testarAlvo() {
     local ALVO=$1
+    local BUILD_ALL="${BUILD_ALL:-ninja all}"
     [[ -z "${ALVO}" ]] && return 1
     printf "Testando o código '%s'...\n" "${ALVO}"
     if ! prepararMontagem "${ALVO}"; then
         return 1
     fi
-    if cmake .. && make all; then
+    if cmake .. && ${BUILD_ALL}; then
         printf "\nCódigo '%s' montado com sucesso!\n\n" "${ALVO}"
         return 0
     else
