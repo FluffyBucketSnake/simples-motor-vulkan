@@ -25,7 +25,9 @@ cmdFormatar() {
     CLANG_FORMAT="clang-format"
     ARQUIVOS_FONTES=("${PASTA_ALVOS}"/**/src/*.cpp)
     ARQUIVOS_CABECALHOS=("${PASTA_ALVOS}"/**/src/*.hpp)
+    printf "Formatando %i arquivos...\n" "$((${#ARQUIVOS_FONTES[@]} + ${#ARQUIVOS_CABECALHOS[@]}))"
     (${CLANG_FORMAT} -i "${ARQUIVOS_FONTES[@]}" "${ARQUIVOS_CABECALHOS[@]}")
+    printf "Pronto!\n"
 }
 
 filtrarTodos() {
