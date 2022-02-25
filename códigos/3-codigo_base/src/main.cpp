@@ -2,6 +2,7 @@
 #include <array>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -105,7 +106,7 @@ class App {
     }
 
     static bool verificarFilasDoDispositivo(
-        const vk::PhysicalDevice& dispositivo) {
+        const vk::PhysicalDevice&) {
         return true;
     }
 

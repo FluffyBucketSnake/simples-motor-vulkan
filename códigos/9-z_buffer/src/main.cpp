@@ -2,6 +2,7 @@
 #include <array>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -861,7 +862,7 @@ class App {
         info.subpass = 0;
 
         pipeline_ =
-            dispositivo_.createGraphicsPipeline({}, info);
+            dispositivo_.createGraphicsPipeline({}, info).value;
     }
 
     void criarBuffersDeComandos() {
@@ -1174,7 +1175,7 @@ class App {
         auto semaforoDeRenderizacaoCompletaAtual =
             semaforosDeRenderizacaoCompleta_[quadroAtual_];
 
-        dispositivo_.waitForFences(
+        std::ignore = dispositivo_.waitForFences(
             cercaAtual, false,
             std::numeric_limits<uint64_t>::max());
 
@@ -1189,7 +1190,7 @@ class App {
         auto& cercaDaImagemAtual =
             imagensEmExecucao_[indiceDaImagem];
         if (cercaDaImagemAtual.has_value()) {
-            dispositivo_.waitForFences(
+            std::ignore = dispositivo_.waitForFences(
                 cercaDaImagemAtual.value(), false,
                 std::numeric_limits<uint64_t>::max());
         }
@@ -1221,7 +1222,8 @@ class App {
         infoApresentacao.pSwapchains = &swapChain_;
         infoApresentacao.pImageIndices = &indiceDaImagem;
 
-        filaDeApresentacao_.presentKHR(infoApresentacao);
+        std::ignore =
+            filaDeApresentacao_.presentKHR(infoApresentacao);
 
         quadroAtual_ =
             (quadroAtual_ + 1) % kMaximoQuadrosEmExecucao;
