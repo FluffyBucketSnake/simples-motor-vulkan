@@ -9,13 +9,19 @@ obterAlvos() {
         printf "Erro: não foi possível acessar a pasta de alvos(caminho='%s').\n" "${PASTA_ALVOS}"
         exit 1
     fi
-    local ALVOS=(*)
-    echo "${ALVOS[@]}"
+    local ALVOS_NAO_ORDEDNADOS=(*)
+    local ALVOS_ORDENADOS
+    IFS=$'\n'
+    mapfile -t ALVOS_ORDENADOS < <(sort -g -k1 -t- <<<"${ALVOS_NAO_ORDEDNADOS[*]}")
+    unset IFS
+    echo "${ALVOS_ORDENADOS[@]}"
 }
 
 filtrarTodos() {
-    read -ra ALVOS <<<"$1"
-    read -ra FILTROS <<<"$2"
+    local ALVOS
+    local FILTROS
+    IFS=" " read -r -a ALVOS <<<"$1"
+    IFS=" " read -r -a FILTROS <<<"$2"
     local ALVOS_NAOSELECIONADOS=("${ALVOS[@]}")
     local ALVOS_SELECIONADOS=()
     for FILTRO in "${FILTROS[@]}"; do
@@ -118,7 +124,8 @@ testarAlvos() {
 
 cmdTestar() {
     local FILTROS=("$@")
-    read -ra ALVOS <<<"$(obterAlvos)"
+    local ALVOS
+    IFS=" " read -r -a ALVOS <<<"$(obterAlvos)"
     mostrarAlvos "${ALVOS[@]}"
     local ALVOS_A_TESTAR=()
     if [[ -n "${FILTROS[*]}" ]]; then
