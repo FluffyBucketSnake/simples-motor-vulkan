@@ -18,7 +18,7 @@ obterAlvos() {
 }
 
 #
-# formatar - aplica o clang-format sobre todos os alvos
+# formatar | f - aplica o clang-format sobre todos os alvos
 #
 cmdFormatar() {
     shopt -s nullglob
@@ -136,7 +136,7 @@ testarAlvos() {
 }
 
 #
-# testar - verifica se todos os exemplos compilam corretamente
+# testar | t - verifica se todos os exemplos compilam corretamente
 #
 # Parâmetros: um conjunto de filtros REGEX, utilizados para selecionar
 # os testes. Caso seja vazio, executa-se todos os testes.
@@ -173,10 +173,10 @@ erroComandoErrado() {
 COMANDO="$1"
 PARAMS=("${@:2}")
 case "$1" in
-formatar)
+formatar | f)
     cmdFormatar
     ;;
-testar)
+testar | t)
     cmdTestar "${PARAMS[@]}"
     ;;
 *)
