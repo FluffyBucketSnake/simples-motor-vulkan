@@ -9,7 +9,7 @@ target_compile_options(motor PRIVATE
      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
           -Wall -Werror -Wextra -Wconversion -Wsign-conversion -pedantic-errors>
      $<$<CXX_COMPILER_ID:MSVC>:
-          /WX /W4>)
+          /WX /W4 /wd4068 /wd4244>)
 
 # Ligar o alvo com as bibliotecas necessárias
 target_link_libraries(motor PRIVATE vulkan)
