@@ -17,6 +17,17 @@ obterAlvos() {
     echo "${ALVOS_ORDENADOS[@]}"
 }
 
+#
+# formatar - aplica o clang-format sobre todos os alvos
+#
+cmdFormatar() {
+    shopt -s nullglob
+    CLANG_FORMAT="clang-format"
+    ARQUIVOS_FONTES=("${PASTA_ALVOS}"/**/src/*.cpp)
+    ARQUIVOS_CABECALHOS=("${PASTA_ALVOS}"/**/src/*.hpp)
+    (${CLANG_FORMAT} -i "${ARQUIVOS_FONTES[@]}" "${ARQUIVOS_CABECALHOS[@]}")
+}
+
 filtrarTodos() {
     local ALVOS
     local FILTROS
@@ -160,6 +171,9 @@ erroComandoErrado() {
 COMANDO="$1"
 PARAMS=("${@:2}")
 case "$1" in
+formatar)
+    cmdFormatar
+    ;;
 testar)
     cmdTestar "${PARAMS[@]}"
     ;;
