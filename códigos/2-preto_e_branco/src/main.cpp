@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #pragma GCC diagnostic push
@@ -73,7 +74,8 @@ class App {
     }
 
     bool verificarDisponibilidadeDasCamadasDeValidacao() {
-        auto propriedadesDasCamadas = vk::enumerateInstanceLayerProperties();
+        auto propriedadesDasCamadas =
+            vk::enumerateInstanceLayerProperties();
 
         for (auto&& camada : kCamadasDeValidacao) {
             bool camadaEncontrada = false;
@@ -97,18 +99,20 @@ class App {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
 
         auto resultado =
-            std::find_if(dispositivosFisicos.begin(), dispositivosFisicos.end(),
-                         verificarDispositivo);
+            std::find_if(dispositivosFisicos.begin(),
+                         dispositivosFisicos.end(), verificarDispositivo);
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
-                "Não foi encontrado um dispositivo físico compartível.");
+                "Não foi encontrado um dispositivo físico "
+                "compartível.");
         }
 
         dispositivoFisico_ = *resultado;
     }
 
-    static bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
+    static bool verificarDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
         // auto propriedades = dispositivo.getProperties();
         // auto capacidades = dispositivo.getFeatures();
 
@@ -117,14 +121,16 @@ class App {
 
     static bool verificarFilasDoDispositivo(
         const vk::PhysicalDevice& dispositivo) {
-        return buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eCompute)
+        return buscarFamiliaDeFilas(dispositivo,
+                                    vk::QueueFlagBits::eCompute)
             .has_value();
     }
 
     void criarDispositivoLogicoEFilas() {
-        familiaComputacao_ = buscarFamiliaDeFilas(dispositivoFisico_,
-                                                  vk::QueueFlagBits::eCompute)
-                                 .value();
+        familiaComputacao_ =
+            buscarFamiliaDeFilas(dispositivoFisico_,
+                                 vk::QueueFlagBits::eCompute)
+                .value();
 
         float prioridadeComputacao = 1.0f;
         vk::DeviceQueueCreateInfo infoComputacao;
@@ -153,9 +159,9 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia =
-            find_if(familias.begin(), familias.end(),
-                    [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia = find_if(
+            familias.begin(), familias.end(),
+            [tipo](auto familia) { return familia.queueFlags & tipo; });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -168,7 +174,8 @@ class App {
     void criarLayoutDosSetDeDescritores() {
         vk::DescriptorSetLayoutBinding associacaoImagem;
         associacaoImagem.binding = 0;
-        associacaoImagem.descriptorType = vk::DescriptorType::eStorageImage;
+        associacaoImagem.descriptorType =
+            vk::DescriptorType::eStorageImage;
         associacaoImagem.descriptorCount = 1;
         associacaoImagem.stageFlags = vk::ShaderStageFlagBits::eCompute;
         // associacaoImagem.pImmutableSamplers = nullptr;
@@ -178,7 +185,8 @@ class App {
         info.bindingCount = 1;
         info.pBindings = &associacaoImagem;
 
-        layoutDoSetDeEntrada_ = dispositivo_.createDescriptorSetLayout(info);
+        layoutDoSetDeEntrada_ =
+            dispositivo_.createDescriptorSetLayout(info);
     }
 
     void criarLayoutDaPipeline() {
@@ -197,8 +205,9 @@ class App {
                                       std::ios::binary);
 
         if (!arquivoDoShader.is_open()) {
-            throw std::runtime_error("Não foi possível abrir o arquivo '" +
-                                     kCamingoDoCodigoDoShader + "'!");
+            throw std::runtime_error(
+                "Não foi possível abrir o arquivo '" +
+                kCamingoDoCodigoDoShader + "'!");
         }
 
         std::vector<char> codigoDoShader(
@@ -208,7 +217,8 @@ class App {
         vk::ShaderModuleCreateInfo info;
         // info.flags = {}
         info.codeSize = codigoDoShader.size();
-        info.pCode = reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+        info.pCode =
+            reinterpret_cast<const uint32_t*>(codigoDoShader.data());
 
         moduloDoShader_ = dispositivo_.createShaderModule(info);
     }
@@ -228,7 +238,7 @@ class App {
         // info.basePipelineHandle = nullptr;
         // info.basePipelineIndex = -1;
 
-        pipeline_ = dispositivo_.createComputePipeline({}, info);
+        pipeline_ = dispositivo_.createComputePipeline({}, info).value;
     }
 
     void criarPoolDeComandos() {
@@ -311,12 +321,13 @@ class App {
                       vk::ImageLayout::eTransferDstOptimal);
         copiarDeBufferParaImagem(bufferDePreparo, imagem, dimensoes.width,
                                  dimensoes.height);
-        alterarLayout(
-            imagem, vk::PipelineStageFlagBits::eTransfer,
-            vk::PipelineStageFlagBits::eComputeShader,
-            vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
-            vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral);
+        alterarLayout(imagem, vk::PipelineStageFlagBits::eTransfer,
+                      vk::PipelineStageFlagBits::eComputeShader,
+                      vk::AccessFlagBits::eTransferWrite,
+                      vk::AccessFlagBits::eShaderRead |
+                          vk::AccessFlagBits::eShaderWrite,
+                      vk::ImageLayout::eTransferDstOptimal,
+                      vk::ImageLayout::eGeneral);
 
         dispositivo_.destroyBuffer(bufferDePreparo);
         dispositivo_.freeMemory(memoriaBufferDePreparo);
@@ -338,7 +349,8 @@ class App {
         // barreira.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
         barreira.image = imagem;
-        barreira.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        barreira.subresourceRange.aspectMask =
+            vk::ImageAspectFlagBits::eColor;
         barreira.subresourceRange.baseMipLevel = 0;
         barreira.subresourceRange.levelCount = 1;
         barreira.subresourceRange.baseArrayLayer = 0;
@@ -389,7 +401,8 @@ class App {
         // regiao.bufferRowLength = 0;
         // regiao.bufferImageHeight = 0;
 
-        regiao.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        regiao.imageSubresource.aspectMask =
+            vk::ImageAspectFlagBits::eColor;
         regiao.imageSubresource.mipLevel = 0;
         regiao.imageSubresource.baseArrayLayer = 0;
         regiao.imageSubresource.layerCount = 1;
@@ -442,7 +455,8 @@ class App {
         info.viewType = vk::ImageViewType::e2D;
         info.format = vk::Format::eR8G8B8A8Unorm;
         // info.components = {};
-        info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        info.subresourceRange.aspectMask =
+            vk::ImageAspectFlagBits::eColor;
         info.subresourceRange.baseMipLevel = 0;
         info.subresourceRange.levelCount = 1;
         info.subresourceRange.baseArrayLayer = 0;
@@ -476,7 +490,8 @@ class App {
         dispositivo_.bindBufferMemory(buffer, memoria, 0);
     }
 
-    vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
+    vk::DeviceMemory alocarMemoria(size_t tamanho,
+                                   uint32_t tipoDeMemoria) {
         vk::MemoryAllocateInfo infoAlloc;
         infoAlloc.allocationSize = tamanho;
         infoAlloc.memoryTypeIndex = tipoDeMemoria;
@@ -491,8 +506,8 @@ class App {
             const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
 
             bool passaPeloFiltro = (1u << i) & filtro;
-            bool possuiAsPropriedades =
-                (tipoDeMemoria.propertyFlags & propriedades) == propriedades;
+            bool possuiAsPropriedades = (tipoDeMemoria.propertyFlags &
+                                         propriedades) == propriedades;
 
             if (passaPeloFiltro && possuiAsPropriedades) {
                 return i;
@@ -554,9 +569,9 @@ class App {
         bufferDeComandos_.begin(info);
         bufferDeComandos_.bindPipeline(vk::PipelineBindPoint::eCompute,
                                        pipeline_);
-        bufferDeComandos_.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
-                                             layoutDaPipeline_, 0,
-                                             {setDeEntrada_}, {});
+        bufferDeComandos_.bindDescriptorSets(
+            vk::PipelineBindPoint::eCompute, layoutDaPipeline_, 0,
+            {setDeEntrada_}, {});
         bufferDeComandos_.dispatch(dimensoesImagem_.width / 32,
                                    dimensoesImagem_.height / 32, 1);
         bufferDeComandos_.end();
@@ -573,19 +588,21 @@ class App {
         // info.pSignalSemaphores = nullptr;
 
         filaComputacao_.submit({info}, cerca_);
-        dispositivo_.waitForFences(cerca_, true,
-                                   std::numeric_limits<uint64_t>::max());
+        std::ignore = dispositivo_.waitForFences(
+            cerca_, true, std::numeric_limits<uint64_t>::max());
     }
 
     void salvarImagem() {
         alterarLayout(imagem_, vk::PipelineStageFlagBits::eComputeShader,
                       vk::PipelineStageFlagBits::eTransfer,
-                      vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
+                      vk::AccessFlagBits::eShaderRead |
+                          vk::AccessFlagBits::eShaderWrite,
                       vk::AccessFlagBits::eTransferRead,
                       vk::ImageLayout::eGeneral,
                       vk::ImageLayout::eTransferSrcOptimal);
 
-        size_t tamanho = dimensoesImagem_.width * dimensoesImagem_.height * 4;
+        size_t tamanho =
+            dimensoesImagem_.width * dimensoesImagem_.height * 4;
         vk::Buffer bufferDestino;
         vk::DeviceMemory memoriaBufferDestino;
         criarBuffer(vk::BufferUsageFlagBits::eTransferDst, tamanho,
@@ -595,7 +612,8 @@ class App {
 
         vk::BufferImageCopy regiao;
 
-        regiao.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        regiao.imageSubresource.aspectMask =
+            vk::ImageAspectFlagBits::eColor;
         regiao.imageSubresource.mipLevel = 0;
         regiao.imageSubresource.baseArrayLayer = 0;
         regiao.imageSubresource.layerCount = 1;
@@ -604,15 +622,17 @@ class App {
         regiao.imageExtent = dimensoesImagem_;
 
         vk::CommandBuffer comando = iniciarComandoDeUsoUnico();
-        comando.copyImageToBuffer(imagem_, vk::ImageLayout::eTransferSrcOptimal,
+        comando.copyImageToBuffer(imagem_,
+                                  vk::ImageLayout::eTransferSrcOptimal,
                                   bufferDestino, {regiao});
         finalizarComandoDeUsoUnico(comando);
 
-        void* dados = dispositivo_.mapMemory(memoriaBufferDestino, 0, tamanho);
+        void* dados =
+            dispositivo_.mapMemory(memoriaBufferDestino, 0, tamanho);
         stbi_write_jpg(kCaminhoDaImagemDestino.c_str(),
                        static_cast<int>(dimensoesImagem_.width),
-                       static_cast<int>(dimensoesImagem_.height), 4, dados,
-                       100);
+                       static_cast<int>(dimensoesImagem_.height), 4,
+                       dados, 100);
         dispositivo_.unmapMemory(memoriaBufferDestino);
 
         dispositivo_.destroyBuffer(bufferDestino);
@@ -655,7 +675,8 @@ class App {
     vk::DescriptorSetLayout layoutDoSetDeEntrada_;
     vk::PipelineLayout layoutDaPipeline_;
 
-    const std::string kCamingoDoCodigoDoShader = "shaders/filtro.comp.spv";
+    const std::string kCamingoDoCodigoDoShader =
+        "shaders/filtro.comp.spv";
     vk::ShaderModule moduloDoShader_;
     vk::Pipeline pipeline_;
 
@@ -664,7 +685,8 @@ class App {
 
     vk::Fence cerca_;
 
-    const std::string kCaminhoDaImagemFonte = "res/statue-g162b3a07b_640.jpg";
+    const std::string kCaminhoDaImagemFonte =
+        "res/statue-g162b3a07b_640.jpg";
     const std::string kCaminhoDaImagemDestino =
         "statue - g162b3a07b_640_saida.jpg ";
     vk::Extent3D dimensoesImagem_;

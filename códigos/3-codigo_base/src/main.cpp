@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
@@ -54,7 +55,8 @@ class App {
     }
 
     bool verificarDisponibilidadeDasCamadasDeValidacao() {
-        auto propriedadesDasCamadas = vk::enumerateInstanceLayerProperties();
+        auto propriedadesDasCamadas =
+            vk::enumerateInstanceLayerProperties();
 
         for (auto&& camada : kCamadasDeValidacao) {
             bool camadaEncontrada = false;
@@ -78,18 +80,20 @@ class App {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
 
         auto resultado =
-            std::find_if(dispositivosFisicos.begin(), dispositivosFisicos.end(),
-                         verificarDispositivo);
+            std::find_if(dispositivosFisicos.begin(),
+                         dispositivosFisicos.end(), verificarDispositivo);
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
-                "Não foi encontrado um dispositivo físico compartível.");
+                "Não foi encontrado um dispositivo físico "
+                "compartível.");
         }
 
         dispositivoFisico_ = *resultado;
     }
 
-    static bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
+    static bool verificarDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
         // auto propriedades = dispositivo.getProperties();
         // auto capacidades = dispositivo.getFeatures();
 
@@ -121,9 +125,9 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia =
-            find_if(familias.begin(), familias.end(),
-                    [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia = find_if(
+            familias.begin(), familias.end(),
+            [tipo](auto familia) { return familia.queueFlags & tipo; });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -133,12 +137,9 @@ class App {
         return std::distance(familias.begin(), familia);
     }
 
-    void loopPrincipal() {
-    }
+    void loopPrincipal() {}
 
-    void destruir() {
-        instancia_.destroy();
-    }
+    void destruir() { instancia_.destroy(); }
 
 #ifdef NDEBUG
     const bool kAtivarCamadasDeValidacao = false;

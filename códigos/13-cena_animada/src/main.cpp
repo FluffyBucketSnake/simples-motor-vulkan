@@ -55,13 +55,15 @@ struct Vertice {
 
     static std::array<vk::VertexInputAttributeDescription, 3>
     descricaoDeAtributos() {
-        return {
-            vk::VertexInputAttributeDescription{
-                0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, posicao)},
-            vk::VertexInputAttributeDescription{
-                1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertice, cor)},
-            vk::VertexInputAttributeDescription{2, 0, vk::Format::eR32G32Sfloat,
-                                                offsetof(Vertice, coordTex)}};
+        return {vk::VertexInputAttributeDescription{
+                    0, 0, vk::Format::eR32G32B32Sfloat,
+                    offsetof(Vertice, posicao)},
+                vk::VertexInputAttributeDescription{
+                    1, 0, vk::Format::eR32G32B32Sfloat,
+                    offsetof(Vertice, cor)},
+                vk::VertexInputAttributeDescription{
+                    2, 0, vk::Format::eR32G32Sfloat,
+                    offsetof(Vertice, coordTex)}};
     }
 };
 }  // namespace smv
@@ -125,7 +127,8 @@ class App {
     }
 
     static void callbackDeRedimensao(GLFWwindow* janela, int, int) {
-        auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(janela));
+        auto app =
+            reinterpret_cast<App*>(glfwGetWindowUserPointer(janela));
         app->precisaRecriarContextoDeRenderizacao_ = true;
     }
 
@@ -162,7 +165,8 @@ class App {
     }
 
     bool verificarDisponibilidadeDasCamadasDeValidacao() {
-        auto propriedadesDasCamadas = vk::enumerateInstanceLayerProperties();
+        auto propriedadesDasCamadas =
+            vk::enumerateInstanceLayerProperties();
 
         for (auto&& camada : kCamadasDeValidacao) {
             bool camadaEncontrada = false;
@@ -186,16 +190,19 @@ class App {
         VkSurfaceKHR superficiePura;
         if (glfwCreateWindowSurface(instancia_, janela_, nullptr,
                                     &superficiePura) != VK_SUCCESS) {
-            throw std::runtime_error("Não foi possível criar a superfície.");
+            throw std::runtime_error(
+                "Não foi possível criar a superfície.");
         }
         superficie_ = vk::SurfaceKHR(superficiePura);
     }
 
     void escolherDispositivoFisico() {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
-        auto resultado = std::find_if(
-            dispositivosFisicos.begin(), dispositivosFisicos.end(),
-            [this](vk::PhysicalDevice d) { return verificarDispositivo(d); });
+        auto resultado = std::find_if(dispositivosFisicos.begin(),
+                                      dispositivosFisicos.end(),
+                                      [this](vk::PhysicalDevice d) {
+                                          return verificarDispositivo(d);
+                                      });
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -214,9 +221,11 @@ class App {
         return possuiFilas && adequadoParaSwapchain;
     }
 
-    bool verificarFilasDoDispositivo(const vk::PhysicalDevice& dispositivo) {
+    bool verificarFilasDoDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
         bool possuiFilaGrafica =
-            buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eGraphics)
+            buscarFamiliaDeFilas(dispositivo,
+                                 vk::QueueFlagBits::eGraphics)
                 .has_value();
 
         bool possuiFilaDeApresentacao =
@@ -240,11 +249,13 @@ class App {
         return valor;
     }
 
-    bool verificarSuporteDeExtensoes(const vk::PhysicalDevice& dispositivo) {
+    bool verificarSuporteDeExtensoes(
+        const vk::PhysicalDevice& dispositivo) {
         auto extensoesDisponiveis =
             dispositivo.enumerateDeviceExtensionProperties();
         std::unordered_set<std::string> extensoesRestantes(
-            kExtensoesDeDispositivo.begin(), kExtensoesDeDispositivo.end());
+            kExtensoesDeDispositivo.begin(),
+            kExtensoesDeDispositivo.end());
 
         for (const auto& extensao : extensoesDisponiveis) {
             extensoesRestantes.erase(extensao.extensionName);
@@ -253,7 +264,8 @@ class App {
         return extensoesRestantes.empty();
     }
 
-    bool verificarSuporteDeSwapchain(const vk::PhysicalDevice& dispositivo) {
+    bool verificarSuporteDeSwapchain(
+        const vk::PhysicalDevice& dispositivo) {
         bool possuiFormatos =
             !dispositivo.getSurfaceFormatsKHR(superficie_).empty();
         bool possuiModosDeApresentacao =
@@ -287,14 +299,16 @@ class App {
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
-        filaDeApresentacao_ = dispositivo_.getQueue(familiaDeApresentacao_, 0);
+        filaDeApresentacao_ =
+            dispositivo_.getQueue(familiaDeApresentacao_, 0);
         filaDeGraficos_ = dispositivo_.getQueue(familiaDeGraficos_, 0);
     }
 
     std::vector<uint32_t> obterFamiliaDoDispositivo() {
-        familiaDeGraficos_ = buscarFamiliaDeFilas(dispositivoFisico_,
-                                                  vk::QueueFlagBits::eGraphics)
-                                 .value();
+        familiaDeGraficos_ =
+            buscarFamiliaDeFilas(dispositivoFisico_,
+                                 vk::QueueFlagBits::eGraphics)
+                .value();
 
         familiaDeApresentacao_ =
             buscarFamiliaDeFilasDePresentacao(dispositivoFisico_).value();
@@ -311,9 +325,9 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia =
-            find_if(familias.begin(), familias.end(),
-                    [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia = find_if(
+            familias.begin(), familias.end(),
+            [tipo](auto familia) { return familia.queueFlags & tipo; });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -352,8 +366,8 @@ class App {
             escolherModoDeApresentacao(modosDeApresentacaoDisponiveis);
         dimensoesDaSwapchain_ = escolherDimensoesDaSwapchain(capacidades);
 
-        uint32_t numeroDeImagens =
-            std::max(capacidades.minImageCount + 1, capacidades.maxImageCount);
+        uint32_t numeroDeImagens = std::max(capacidades.minImageCount + 1,
+                                            capacidades.maxImageCount);
 
         vk::SwapchainCreateInfoKHR info;
 
@@ -375,7 +389,8 @@ class App {
             std::array<uint32_t, 2> familias{familiaDeApresentacao_,
                                              familiaDeGraficos_};
             info.imageSharingMode = vk::SharingMode::eConcurrent;
-            info.queueFamilyIndexCount = static_cast<uint32_t>(familias.size());
+            info.queueFamilyIndexCount =
+                static_cast<uint32_t>(familias.size());
             info.pQueueFamilyIndices = familias.data();
 
             swapChain_ = dispositivo_.createSwapchainKHR(info);
@@ -387,7 +402,8 @@ class App {
             swapChain_ = dispositivo_.createSwapchainKHR(info);
         }
 
-        imagensDaSwapchain_ = dispositivo_.getSwapchainImagesKHR(swapChain_);
+        imagensDaSwapchain_ =
+            dispositivo_.getSwapchainImagesKHR(swapChain_);
         visoesDasImagensDaSwapchain_.reserve(imagensDaSwapchain_.size());
         for (const auto& imagem : imagensDaSwapchain_) {
             visoesDasImagensDaSwapchain_.push_back(
@@ -408,7 +424,8 @@ class App {
     }
 
     vk::PresentModeKHR escolherModoDeApresentacao(
-        const std::vector<vk::PresentModeKHR>& modosDeApresentacaoDisponiveis) {
+        const std::vector<vk::PresentModeKHR>&
+            modosDeApresentacaoDisponiveis) {
         auto comeco = modosDeApresentacaoDisponiveis.begin();
         auto fim = modosDeApresentacaoDisponiveis.end();
 
@@ -436,8 +453,8 @@ class App {
 
             dimensoes.width =
                 std::clamp(dimensoes.width, minimo.width, maximo.width);
-            dimensoes.height =
-                std::clamp(dimensoes.height, minimo.height, maximo.height);
+            dimensoes.height = std::clamp(dimensoes.height, minimo.height,
+                                          maximo.height);
 
             return dimensoes;
         }
@@ -484,8 +501,9 @@ class App {
                 vk::AccessFlagBits::eDepthStencilAttachmentWrite,
             vk::ImageLayout::eUndefined,
             vk::ImageLayout::eDepthStencilAttachmentOptimal, aspectos);
-        visaoDaImagemDeProfundidade_ = criarVisaoDeImagem(
-            imagemDeProfundidade_, formatoDaImagemDeProfundidade_, aspectos);
+        visaoDaImagemDeProfundidade_ =
+            criarVisaoDeImagem(imagemDeProfundidade_,
+                               formatoDaImagemDeProfundidade_, aspectos);
     }
 
     vk::Format buscarFormatoSuportado(
@@ -497,8 +515,8 @@ class App {
                 auto propriedades =
                     dispositivoFisico_.getFormatProperties(candidato);
 
-                return (propriedades.optimalTilingFeatures & capacidades) ==
-                       capacidades;
+                return (propriedades.optimalTilingFeatures &
+                        capacidades) == capacidades;
             });
 
         if (resultado == candidatos.end()) {
@@ -577,17 +595,21 @@ class App {
 
     void criarPasseDeRenderizacao() {
         std::array<vk::AttachmentDescription, 2> anexos = {
+            vk::AttachmentDescription({}, formatoDaSwapchain_,
+                                      vk::SampleCountFlagBits::e1,
+                                      vk::AttachmentLoadOp::eClear,
+                                      vk::AttachmentStoreOp::eStore,
+                                      vk::AttachmentLoadOp::eDontCare,
+                                      vk::AttachmentStoreOp::eDontCare,
+                                      vk::ImageLayout::eUndefined,
+                                      vk::ImageLayout::ePresentSrcKHR),
             vk::AttachmentDescription(
-                {}, formatoDaSwapchain_, vk::SampleCountFlagBits::e1,
-                vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
+                {}, formatoDaImagemDeProfundidade_,
+                vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear,
+                vk::AttachmentStoreOp::eDontCare,
                 vk::AttachmentLoadOp::eDontCare,
-                vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
-                vk::ImageLayout::ePresentSrcKHR),
-            vk::AttachmentDescription(
-                {}, formatoDaImagemDeProfundidade_, vk::SampleCountFlagBits::e1,
-                vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
-                vk::AttachmentLoadOp::eDontCare,
-                vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
+                vk::AttachmentStoreOp::eDontCare,
+                vk::ImageLayout::eUndefined,
                 vk::ImageLayout::eDepthStencilAttachmentOptimal)};
 
         vk::AttachmentReference refAnexoCor(
@@ -634,12 +656,13 @@ class App {
     }
 
     void criarFramebuffers() {
-        std::transform(
-            visoesDasImagensDaSwapchain_.begin(),
-            visoesDasImagensDaSwapchain_.end(),
-            std::back_inserter(framebuffers_), [this](const vk::ImageView& i) {
-                return criarFramebuffer(i, visaoDaImagemDeProfundidade_);
-            });
+        std::transform(visoesDasImagensDaSwapchain_.begin(),
+                       visoesDasImagensDaSwapchain_.end(),
+                       std::back_inserter(framebuffers_),
+                       [this](const vk::ImageView& i) {
+                           return criarFramebuffer(
+                               i, visaoDaImagemDeProfundidade_);
+                       });
     }
 
     vk::Framebuffer criarFramebuffer(
@@ -661,9 +684,9 @@ class App {
 
     void criarLayoutsDosSetsDeDescritores() {
         std::array<vk::DescriptorSetLayoutBinding, 2> associacoes = {
-            vk::DescriptorSetLayoutBinding{0,
-                                           vk::DescriptorType::eUniformBuffer,
-                                           1, vk::ShaderStageFlagBits::eVertex},
+            vk::DescriptorSetLayoutBinding{
+                0, vk::DescriptorType::eUniformBuffer, 1,
+                vk::ShaderStageFlagBits::eVertex},
             vk::DescriptorSetLayoutBinding{
                 1, vk::DescriptorType::eCombinedImageSampler, 1,
                 vk::ShaderStageFlagBits::eFragment}};
@@ -677,8 +700,8 @@ class App {
     }
 
     void criarLayoutDaPipeline() {
-        vk::PushConstantRange intervalo = {vk::ShaderStageFlagBits::eVertex, 0,
-                                           sizeof(PushConstants)};
+        vk::PushConstantRange intervalo = {
+            vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants)};
 
         vk::PipelineLayoutCreateInfo info;
         info.setLayoutCount = 1;
@@ -698,8 +721,8 @@ class App {
         std::ifstream arquivoDoShader(caminho, std::ios::binary);
 
         if (!arquivoDoShader.is_open()) {
-            throw std::runtime_error("Não foi possível abrir o arquivo '" +
-                                     caminho + "'!");
+            throw std::runtime_error(
+                "Não foi possível abrir o arquivo '" + caminho + "'!");
         }
 
         std::vector<char> codigoDoShader(
@@ -708,7 +731,8 @@ class App {
 
         vk::ShaderModuleCreateInfo info;
         info.codeSize = codigoDoShader.size();
-        info.pCode = reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+        info.pCode =
+            reinterpret_cast<const uint32_t*>(codigoDoShader.data());
 
         return dispositivo_.createShaderModule(info);
     }
@@ -716,7 +740,10 @@ class App {
     void criarPipeline() {
         std::array<vk::PipelineShaderStageCreateInfo, 2> estagios{
             vk::PipelineShaderStageCreateInfo{
-                {}, vk::ShaderStageFlagBits::eVertex, shaderDeVertices, "main"},
+                {},
+                vk::ShaderStageFlagBits::eVertex,
+                shaderDeVertices,
+                "main"},
             vk::PipelineShaderStageCreateInfo{
                 {},
                 vk::ShaderStageFlagBits::eFragment,
@@ -732,7 +759,8 @@ class App {
         infoVertices.pVertexBindingDescriptions = &descricaoDeAssociacao;
         infoVertices.vertexAttributeDescriptionCount =
             static_cast<uint32_t>(atributosDosVertices.size());
-        infoVertices.pVertexAttributeDescriptions = atributosDosVertices.data();
+        infoVertices.pVertexAttributeDescriptions =
+            atributosDosVertices.data();
 
         vk::PipelineInputAssemblyStateCreateInfo infoEntrada;
         infoEntrada.topology = vk::PrimitiveTopology::eTriangleList;
@@ -756,26 +784,31 @@ class App {
 
         vk::PipelineColorBlendAttachmentState misturaDoAnexoDeCor;
         misturaDoAnexoDeCor.colorWriteMask =
-            vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+            vk::ColorComponentFlagBits::eR |
+            vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB |
+            vk::ColorComponentFlagBits::eA;
         misturaDoAnexoDeCor.blendEnable = false;
 
         // Sobrescrita
-        // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eOne;
-        // misturaDoAnexoDeCor.dstColorBlendFactor = vk::BlendFactor::eZero;
-        // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
-        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
-        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcColorBlendFactor =
+        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstColorBlendFactor
+        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.colorBlendOp =
+        // vk::BlendOp::eAdd; misturaDoAnexoDeCor.srcAlphaBlendFactor =
+        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor
+        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
+        // vk::BlendOp::eAdd;
 
         // Alpha blending
-        // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+        // misturaDoAnexoDeCor.srcColorBlendFactor =
+        // vk::BlendFactor::eSrcAlpha;
         // misturaDoAnexoDeCor.dstColorBlendFactor =
         //     vk::BlendFactor::eOneMinusSrcAlpha;
         // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
-        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
-        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcAlphaBlendFactor =
+        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor
+        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
+        // vk::BlendOp::eAdd;
 
         vk::PipelineColorBlendStateCreateInfo infoMistura;
         infoMistura.attachmentCount = 1;
@@ -822,7 +855,8 @@ class App {
         bufferDeComandos.begin(info);
 
         std::array<vk::ClearValue, 2> valoresDeLimpeza = {
-            vk::ClearColorValue{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}},
+            vk::ClearColorValue{
+                std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}},
             vk::ClearDepthStencilValue{1.0f, 0}};
 
         vk::RenderPassBeginInfo infoPasse;
@@ -853,9 +887,9 @@ class App {
             layoutDaPipeline_, vk::ShaderStageFlagBits::eVertex, 0,
             pushConstants_);
 
-        bufferDeComandos.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                                            layoutDaPipeline_, 0,
-                                            setDeDescritores_, {});
+        bufferDeComandos.bindDescriptorSets(
+            vk::PipelineBindPoint::eGraphics, layoutDaPipeline_, 0,
+            setDeDescritores_, {});
         bufferDeComandos.bindVertexBuffers(0, bufferDeVertices_, {0});
         bufferDeComandos.bindIndexBuffer(bufferDeIndices_, 0,
                                          vk::IndexType::eUint16);
@@ -875,10 +909,10 @@ class App {
         std::generate(semaforosDeRenderizacaoCompleta_.begin(),
                       semaforosDeRenderizacaoCompleta_.end(),
                       [this]() { return criarSemaforo(); });
-        std::generate(cercasDeQuadros_.begin(), cercasDeQuadros_.end(),
-                      [this]() {
-                          return criarCerca(vk::FenceCreateFlagBits::eSignaled);
-                      });
+        std::generate(
+            cercasDeQuadros_.begin(), cercasDeQuadros_.end(), [this]() {
+                return criarCerca(vk::FenceCreateFlagBits::eSignaled);
+            });
     }
 
     vk::Semaphore criarSemaforo() {
@@ -895,8 +929,8 @@ class App {
     void criarPoolDeDescritores() {
         std::array<vk::DescriptorPoolSize, 2> tamanhos = {
             vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 1},
-            vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler,
-                                   1}};
+            vk::DescriptorPoolSize{
+                vk::DescriptorType::eCombinedImageSampler, 1}};
 
         vk::DescriptorPoolCreateInfo info;
         info.maxSets = 1;
@@ -908,10 +942,12 @@ class App {
 
     void carregarRecursos() {
         carregarModelo(kCaminhoDoModelo, vertices_, indices_);
-        criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer, vertices_,
-                            bufferDeVertices_, memoriaBufferDeVertices_);
-        criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer, indices_,
-                            bufferDeIndices_, memoriaBufferDeIndices_);
+        criarBufferImutavel(vk::BufferUsageFlagBits::eVertexBuffer,
+                            vertices_, bufferDeVertices_,
+                            memoriaBufferDeVertices_);
+        criarBufferImutavel(vk::BufferUsageFlagBits::eIndexBuffer,
+                            indices_, bufferDeIndices_,
+                            memoriaBufferDeIndices_);
 
         carregarTextura(kCaminhoDaTextura, textura_, memoriaTextura_,
                         visaoDaTextura_);
@@ -935,9 +971,10 @@ class App {
         std::vector<tinyobj::shape_t> formas;
         std::vector<tinyobj::material_t> _materiais;
         std::string aviso, erro;
-        if (!tinyobj::LoadObj(&atributos, &formas, &_materiais, &aviso, &erro,
-                              caminho.c_str())) {
-            throw std::runtime_error("Aviso: " + aviso + " Erro: " + erro);
+        if (!tinyobj::LoadObj(&atributos, &formas, &_materiais, &aviso,
+                              &erro, caminho.c_str())) {
+            throw std::runtime_error("Aviso: " + aviso +
+                                     " Erro: " + erro);
         }
 
         std::unordered_map<Vertice, uint16_t> verticesUnicos;
@@ -952,17 +989,20 @@ class App {
                     atributos.vertices[(3 * indiceDoVertice) + 1],
                     atributos.vertices[(3 * indiceDoVertice) + 2]};
 
-                vertice.cor = {atributos.colors[(3 * indiceDoVertice) + 0],
-                               atributos.colors[(3 * indiceDoVertice) + 1],
-                               atributos.colors[(3 * indiceDoVertice) + 2]};
+                vertice.cor = {
+                    atributos.colors[(3 * indiceDoVertice) + 0],
+                    atributos.colors[(3 * indiceDoVertice) + 1],
+                    atributos.colors[(3 * indiceDoVertice) + 2]};
 
                 uint32_t indiceDaCoordTex =
                     static_cast<uint32_t>(indice.texcoord_index);
                 vertice.coordTex = {
                     atributos.texcoords[(2 * indiceDaCoordTex) + 0],
-                    1.0f - atributos.texcoords[(2 * indiceDaCoordTex) + 1]};
+                    1.0f -
+                        atributos.texcoords[(2 * indiceDaCoordTex) + 1]};
 
-                if (verticesUnicos.find(vertice) == verticesUnicos.end()) {
+                if (verticesUnicos.find(vertice) ==
+                    verticesUnicos.end()) {
                     verticesUnicos[vertice] =
                         static_cast<uint16_t>(vertices.size());
                     vertices.push_back(vertice);
@@ -980,7 +1020,8 @@ class App {
         size_t tamanho = dados.size() * sizeof(T);
 
         criarBuffer(usos | vk::BufferUsageFlagBits::eTransferDst, tamanho,
-                    vk::MemoryPropertyFlagBits::eDeviceLocal, buffer, memoria);
+                    vk::MemoryPropertyFlagBits::eDeviceLocal, buffer,
+                    memoria);
 
         atualizarBuffer(buffer, tamanho, dados.data());
     }
@@ -1099,7 +1140,8 @@ class App {
         // regiao.bufferRowLength = 0;
         // regiao.bufferImageHeight = 0;
 
-        regiao.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        regiao.imageSubresource.aspectMask =
+            vk::ImageAspectFlagBits::eColor;
         regiao.imageSubresource.mipLevel = 0;
         regiao.imageSubresource.baseArrayLayer = 0;
         regiao.imageSubresource.layerCount = 1;
@@ -1120,7 +1162,8 @@ class App {
                          vk::ImageView& visaoDaImagem) {
         vk::Extent3D _dimensoes;
         carregarImagem(caminho, imagem, memoria, _dimensoes);
-        visaoDaImagem = criarVisaoDeImagem(imagem, vk::Format::eR8G8B8A8Srgb);
+        visaoDaImagem =
+            criarVisaoDeImagem(imagem, vk::Format::eR8G8B8A8Srgb);
     }
 
     vk::Sampler criarAmostrador() {
@@ -1131,7 +1174,8 @@ class App {
         return dispositivo_.createSampler(info);
     }
 
-    vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
+    vk::DeviceMemory alocarMemoria(size_t tamanho,
+                                   uint32_t tipoDeMemoria) {
         vk::MemoryAllocateInfo infoAlloc;
         infoAlloc.allocationSize = tamanho;
         infoAlloc.memoryTypeIndex = tipoDeMemoria;
@@ -1146,8 +1190,8 @@ class App {
             const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
 
             bool passaPeloFiltro = (1u << i) & filtro;
-            bool possuiAsPropriedades =
-                (tipoDeMemoria.propertyFlags & propriedades) == propriedades;
+            bool possuiAsPropriedades = (tipoDeMemoria.propertyFlags &
+                                         propriedades) == propriedades;
 
             if (passaPeloFiltro && possuiAsPropriedades) {
                 return i;
@@ -1191,8 +1235,9 @@ class App {
         glm::vec3 posicaoDaCamera = {-0.2f, -0.5f, -1.0f};
         glm::vec3 alvoDaCamera = glm::zero<glm::vec3>();
         glm::vec3 cimaDaCamera = {0.0f, -1.0f, 0.0f};
-        obu_.visao = glm::scale(glm::identity<glm::mat4>(), {1, -1, -1}) *
-                     glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
+        obu_.visao =
+            glm::scale(glm::identity<glm::mat4>(), {1, -1, -1}) *
+            glm::lookAt(posicaoDaCamera, alvoDaCamera, cimaDaCamera);
 
         float fovVertical = glm::radians(90.0f);
         float proporcaoDaTela =
@@ -1211,7 +1256,8 @@ class App {
         infoAloc.descriptorSetCount = 1;
         infoAloc.pSetLayouts = &layoutDoSetDeDescritores_;
 
-        setDeDescritores_ = dispositivo_.allocateDescriptorSets(infoAloc)[0];
+        setDeDescritores_ =
+            dispositivo_.allocateDescriptorSets(infoAloc)[0];
 
         vk::DescriptorBufferInfo infoOBU = {bufferDoOBU_, 0, sizeof(OBU)};
 
@@ -1227,9 +1273,9 @@ class App {
                                    vk::DescriptorType::eUniformBuffer,
                                    {},
                                    &infoOBU},
-            vk::WriteDescriptorSet{setDeDescritores_, 1, 0, 1,
-                                   vk::DescriptorType::eCombinedImageSampler,
-                                   &infoTextura}};
+            vk::WriteDescriptorSet{
+                setDeDescritores_, 1, 0, 1,
+                vk::DescriptorType::eCombinedImageSampler, &infoTextura}};
 
         dispositivo_.updateDescriptorSets(escreverOBU, {});
     }
@@ -1240,9 +1286,9 @@ class App {
             auto tempoAtual = std::chrono::system_clock::now();
             auto tempoDecorrido = tempoAtual - tempoInicial;
             glfwPollEvents();
-            atualizar(
-                std::chrono::duration<float, std::chrono::seconds::period>(
-                    tempoDecorrido));
+            atualizar(std::chrono::duration<float,
+                                            std::chrono::seconds::period>(
+                tempoDecorrido));
             renderizar();
             if (precisaRecriarContextoDeRenderizacao_) {
                 recriarContextoDeRenderizacao();
@@ -1251,11 +1297,14 @@ class App {
         dispositivo_.waitIdle();
     }
 
-    void atualizar(std::chrono::duration<float, std::chrono::seconds::period>
-                       tempoDecorrido) {
-        float rotacaoDaCena = glm::half_pi<float>() * tempoDecorrido.count();
-        pushConstants_.modelo = glm::rotate(glm::identity<glm::mat4>(),
-                                            rotacaoDaCena, {0.0f, 1.0f, 0.0f});
+    void atualizar(
+        std::chrono::duration<float, std::chrono::seconds::period>
+            tempoDecorrido) {
+        float rotacaoDaCena =
+            glm::half_pi<float>() * tempoDecorrido.count();
+        pushConstants_.modelo =
+            glm::rotate(glm::identity<glm::mat4>(), rotacaoDaCena,
+                        {0.0f, 1.0f, 0.0f});
     }
 
     void renderizar() {
@@ -1284,9 +1333,9 @@ class App {
             buffersDeComandos_[quadroAtual_];
         gravarBufferDeComandos(bufferDeComandosAtual,
                                framebuffers_[indiceDaImagem.value()]);
-        submeterParaRenderizar(bufferDeComandosAtual,
-                               semaforoDeImagemDisponivelAtual,
-                               semaforoDeRenderizacaoCompletaAtual, cercaAtual);
+        submeterParaRenderizar(
+            bufferDeComandosAtual, semaforoDeImagemDisponivelAtual,
+            semaforoDeRenderizacaoCompletaAtual, cercaAtual);
 
         precisaRecriarContextoDeRenderizacao_ = tentarApresentarImagem(
             indiceDaImagem.value(), semaforoDeRenderizacaoCompletaAtual);
@@ -1310,8 +1359,9 @@ class App {
     void esperarCercaDaImagemAtual(uint32_t indiceDaImagem) {
         auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
         if (cercaDaImagemAtual.has_value()) {
-            dispositivo_.waitForFences(cercaDaImagemAtual.value(), false,
-                                       std::numeric_limits<uint64_t>::max());
+            dispositivo_.waitForFences(
+                cercaDaImagemAtual.value(), false,
+                std::numeric_limits<uint64_t>::max());
         }
     }
 
@@ -1398,7 +1448,8 @@ class App {
         dispositivo_.destroyShaderModule(shaderDeFragmentos);
         dispositivo_.destroyShaderModule(shaderDeVertices);
         dispositivo_.destroyPipelineLayout(layoutDaPipeline_);
-        dispositivo_.destroyDescriptorSetLayout(layoutDoSetDeDescritores_);
+        dispositivo_.destroyDescriptorSetLayout(
+            layoutDoSetDeDescritores_);
         destruirContextoDeRenderizacao();
         dispositivo_.destroyCommandPool(poolDeComandos_);
         dispositivo_.destroy();
@@ -1472,9 +1523,11 @@ class App {
 
     vk::DescriptorSetLayout layoutDoSetDeDescritores_;
     vk::PipelineLayout layoutDaPipeline_;
-    const std::string kCaminhoShaderDeVertices = "shaders/shader.vert.spv";
+    const std::string kCaminhoShaderDeVertices =
+        "shaders/shader.vert.spv";
     vk::ShaderModule shaderDeVertices;
-    const std::string kCaminhoShaderDeFragmento = "shaders/shader.frag.spv";
+    const std::string kCaminhoShaderDeFragmento =
+        "shaders/shader.frag.spv";
     vk::ShaderModule shaderDeFragmentos;
     vk::Pipeline pipeline_;
 

@@ -76,7 +76,8 @@ class App {
     }
 
     bool verificarDisponibilidadeDasCamadasDeValidacao() {
-        auto propriedadesDasCamadas = vk::enumerateInstanceLayerProperties();
+        auto propriedadesDasCamadas =
+            vk::enumerateInstanceLayerProperties();
 
         for (auto&& camada : kCamadasDeValidacao) {
             bool camadaEncontrada = false;
@@ -100,16 +101,19 @@ class App {
         VkSurfaceKHR superficiePura;
         if (glfwCreateWindowSurface(instancia_, janela_, nullptr,
                                     &superficiePura) != VK_SUCCESS) {
-            throw std::runtime_error("Não foi possível criar a superfície.");
+            throw std::runtime_error(
+                "Não foi possível criar a superfície.");
         }
         superficie_ = vk::SurfaceKHR(superficiePura);
     }
 
     void escolherDispositivoFisico() {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
-        auto resultado = std::find_if(
-            dispositivosFisicos.begin(), dispositivosFisicos.end(),
-            [this](vk::PhysicalDevice d) { return verificarDispositivo(d); });
+        auto resultado = std::find_if(dispositivosFisicos.begin(),
+                                      dispositivosFisicos.end(),
+                                      [this](vk::PhysicalDevice d) {
+                                          return verificarDispositivo(d);
+                                      });
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -128,9 +132,11 @@ class App {
         return possuiFilas && adequadoParaSwapchain;
     }
 
-    bool verificarFilasDoDispositivo(const vk::PhysicalDevice& dispositivo) {
+    bool verificarFilasDoDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
         bool possuiFilaGrafica =
-            buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eGraphics)
+            buscarFamiliaDeFilas(dispositivo,
+                                 vk::QueueFlagBits::eGraphics)
                 .has_value();
 
         bool possuiFilaDeApresentacao =
@@ -154,11 +160,13 @@ class App {
         return valor;
     }
 
-    bool verificarSuporteDeExtensoes(const vk::PhysicalDevice& dispositivo) {
+    bool verificarSuporteDeExtensoes(
+        const vk::PhysicalDevice& dispositivo) {
         auto extensoesDisponiveis =
             dispositivo.enumerateDeviceExtensionProperties();
         std::unordered_set<std::string> extensoesRestantes(
-            kExtensoesDeDispositivo.begin(), kExtensoesDeDispositivo.end());
+            kExtensoesDeDispositivo.begin(),
+            kExtensoesDeDispositivo.end());
 
         for (const auto& extensao : extensoesDisponiveis) {
             extensoesRestantes.erase(extensao.extensionName);
@@ -167,7 +175,8 @@ class App {
         return extensoesRestantes.empty();
     }
 
-    bool verificarSuporteDeSwapchain(const vk::PhysicalDevice& dispositivo) {
+    bool verificarSuporteDeSwapchain(
+        const vk::PhysicalDevice& dispositivo) {
         bool possuiFormatos =
             !dispositivo.getSurfaceFormatsKHR(superficie_).empty();
         bool possuiModosDeApresentacao =
@@ -201,14 +210,16 @@ class App {
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
-        filaDeApresentacao_ = dispositivo_.getQueue(familiaDeApresentacao_, 0);
+        filaDeApresentacao_ =
+            dispositivo_.getQueue(familiaDeApresentacao_, 0);
         filaDeGraficos_ = dispositivo_.getQueue(familiaDeGraficos_, 0);
     }
 
     std::vector<uint32_t> obterFamiliaDoDispositivo() {
-        familiaDeGraficos_ = buscarFamiliaDeFilas(dispositivoFisico_,
-                                                  vk::QueueFlagBits::eGraphics)
-                                 .value();
+        familiaDeGraficos_ =
+            buscarFamiliaDeFilas(dispositivoFisico_,
+                                 vk::QueueFlagBits::eGraphics)
+                .value();
 
         familiaDeApresentacao_ =
             buscarFamiliaDeFilasDePresentacao(dispositivoFisico_).value();
@@ -225,9 +236,9 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia =
-            find_if(familias.begin(), familias.end(),
-                    [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia = find_if(
+            familias.begin(), familias.end(),
+            [tipo](auto familia) { return familia.queueFlags & tipo; });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -257,8 +268,8 @@ class App {
             escolherModoDeApresentacao(modosDeApresentacaoDisponiveis);
         dimensoesDaSwapchain_ = escolherDimensoesDaSwapchain(capacidades);
 
-        uint32_t numeroDeImagens =
-            std::max(capacidades.minImageCount + 1, capacidades.maxImageCount);
+        uint32_t numeroDeImagens = std::max(capacidades.minImageCount + 1,
+                                            capacidades.maxImageCount);
 
         vk::SwapchainCreateInfoKHR info;
 
@@ -280,7 +291,8 @@ class App {
             std::array<uint32_t, 2> familias{familiaDeApresentacao_,
                                              familiaDeGraficos_};
             info.imageSharingMode = vk::SharingMode::eConcurrent;
-            info.queueFamilyIndexCount = static_cast<uint32_t>(familias.size());
+            info.queueFamilyIndexCount =
+                static_cast<uint32_t>(familias.size());
             info.pQueueFamilyIndices = familias.data();
 
             swapChain_ = dispositivo_.createSwapchainKHR(info);
@@ -292,7 +304,8 @@ class App {
             swapChain_ = dispositivo_.createSwapchainKHR(info);
         }
 
-        imagensDaSwapchain_ = dispositivo_.getSwapchainImagesKHR(swapChain_);
+        imagensDaSwapchain_ =
+            dispositivo_.getSwapchainImagesKHR(swapChain_);
         visoesDasImagensDaSwapchain_.reserve(imagensDaSwapchain_.size());
         for (const auto& imagem : imagensDaSwapchain_) {
             visoesDasImagensDaSwapchain_.push_back(
@@ -312,7 +325,8 @@ class App {
     }
 
     vk::PresentModeKHR escolherModoDeApresentacao(
-        const std::vector<vk::PresentModeKHR>& modosDeApresentacaoDisponiveis) {
+        const std::vector<vk::PresentModeKHR>&
+            modosDeApresentacaoDisponiveis) {
         auto comeco = modosDeApresentacaoDisponiveis.begin();
         auto fim = modosDeApresentacaoDisponiveis.end();
 
@@ -340,8 +354,8 @@ class App {
 
             dimensoes.width =
                 std::clamp(dimensoes.width, minimo.width, maximo.width);
-            dimensoes.height =
-                std::clamp(dimensoes.height, minimo.height, maximo.height);
+            dimensoes.height = std::clamp(dimensoes.height, minimo.height,
+                                          maximo.height);
 
             return dimensoes;
         }
@@ -355,7 +369,8 @@ class App {
         info.viewType = vk::ImageViewType::e2D;
         info.format = formato;
         // info.components = {};
-        info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        info.subresourceRange.aspectMask =
+            vk::ImageAspectFlagBits::eColor;
         info.subresourceRange.baseMipLevel = 0;
         info.subresourceRange.levelCount = 1;
         info.subresourceRange.baseArrayLayer = 0;
@@ -403,14 +418,16 @@ class App {
     }
 
     void criarFramebuffers() {
-        std::transform(
-            visoesDasImagensDaSwapchain_.begin(),
-            visoesDasImagensDaSwapchain_.end(),
-            std::back_inserter(framebuffers_),
-            [this](const vk::ImageView& i) { return criarFramebuffer(i); });
+        std::transform(visoesDasImagensDaSwapchain_.begin(),
+                       visoesDasImagensDaSwapchain_.end(),
+                       std::back_inserter(framebuffers_),
+                       [this](const vk::ImageView& i) {
+                           return criarFramebuffer(i);
+                       });
     }
 
-    vk::Framebuffer criarFramebuffer(const vk::ImageView& imagemDaSwapchain) {
+    vk::Framebuffer criarFramebuffer(
+        const vk::ImageView& imagemDaSwapchain) {
         vk::FramebufferCreateInfo info;
         info.renderPass = passeDeRenderizacao_;
         info.attachmentCount = 1;

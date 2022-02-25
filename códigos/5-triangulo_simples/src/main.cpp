@@ -81,7 +81,8 @@ class App {
     }
 
     bool verificarDisponibilidadeDasCamadasDeValidacao() {
-        auto propriedadesDasCamadas = vk::enumerateInstanceLayerProperties();
+        auto propriedadesDasCamadas =
+            vk::enumerateInstanceLayerProperties();
 
         for (auto&& camada : kCamadasDeValidacao) {
             bool camadaEncontrada = false;
@@ -105,16 +106,19 @@ class App {
         VkSurfaceKHR superficiePura;
         if (glfwCreateWindowSurface(instancia_, janela_, nullptr,
                                     &superficiePura) != VK_SUCCESS) {
-            throw std::runtime_error("Não foi possível criar a superfície.");
+            throw std::runtime_error(
+                "Não foi possível criar a superfície.");
         }
         superficie_ = vk::SurfaceKHR(superficiePura);
     }
 
     void escolherDispositivoFisico() {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
-        auto resultado = std::find_if(
-            dispositivosFisicos.begin(), dispositivosFisicos.end(),
-            [this](vk::PhysicalDevice d) { return verificarDispositivo(d); });
+        auto resultado = std::find_if(dispositivosFisicos.begin(),
+                                      dispositivosFisicos.end(),
+                                      [this](vk::PhysicalDevice d) {
+                                          return verificarDispositivo(d);
+                                      });
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -133,9 +137,11 @@ class App {
         return possuiFilas && adequadoParaSwapchain;
     }
 
-    bool verificarFilasDoDispositivo(const vk::PhysicalDevice& dispositivo) {
+    bool verificarFilasDoDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
         bool possuiFilaGrafica =
-            buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eGraphics)
+            buscarFamiliaDeFilas(dispositivo,
+                                 vk::QueueFlagBits::eGraphics)
                 .has_value();
 
         bool possuiFilaDeApresentacao =
@@ -159,11 +165,13 @@ class App {
         return valor;
     }
 
-    bool verificarSuporteDeExtensoes(const vk::PhysicalDevice& dispositivo) {
+    bool verificarSuporteDeExtensoes(
+        const vk::PhysicalDevice& dispositivo) {
         auto extensoesDisponiveis =
             dispositivo.enumerateDeviceExtensionProperties();
         std::unordered_set<std::string> extensoesRestantes(
-            kExtensoesDeDispositivo.begin(), kExtensoesDeDispositivo.end());
+            kExtensoesDeDispositivo.begin(),
+            kExtensoesDeDispositivo.end());
 
         for (const auto& extensao : extensoesDisponiveis) {
             extensoesRestantes.erase(extensao.extensionName);
@@ -172,7 +180,8 @@ class App {
         return extensoesRestantes.empty();
     }
 
-    bool verificarSuporteDeSwapchain(const vk::PhysicalDevice& dispositivo) {
+    bool verificarSuporteDeSwapchain(
+        const vk::PhysicalDevice& dispositivo) {
         bool possuiFormatos =
             !dispositivo.getSurfaceFormatsKHR(superficie_).empty();
         bool possuiModosDeApresentacao =
@@ -206,14 +215,16 @@ class App {
         }
 
         dispositivo_ = dispositivoFisico_.createDevice(info);
-        filaDeApresentacao_ = dispositivo_.getQueue(familiaDeApresentacao_, 0);
+        filaDeApresentacao_ =
+            dispositivo_.getQueue(familiaDeApresentacao_, 0);
         filaDeGraficos_ = dispositivo_.getQueue(familiaDeGraficos_, 0);
     }
 
     std::vector<uint32_t> obterFamiliaDoDispositivo() {
-        familiaDeGraficos_ = buscarFamiliaDeFilas(dispositivoFisico_,
-                                                  vk::QueueFlagBits::eGraphics)
-                                 .value();
+        familiaDeGraficos_ =
+            buscarFamiliaDeFilas(dispositivoFisico_,
+                                 vk::QueueFlagBits::eGraphics)
+                .value();
 
         familiaDeApresentacao_ =
             buscarFamiliaDeFilasDePresentacao(dispositivoFisico_).value();
@@ -230,9 +241,9 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia =
-            find_if(familias.begin(), familias.end(),
-                    [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia = find_if(
+            familias.begin(), familias.end(),
+            [tipo](auto familia) { return familia.queueFlags & tipo; });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -262,8 +273,8 @@ class App {
             escolherModoDeApresentacao(modosDeApresentacaoDisponiveis);
         dimensoesDaSwapchain_ = escolherDimensoesDaSwapchain(capacidades);
 
-        uint32_t numeroDeImagens =
-            std::max(capacidades.minImageCount + 1, capacidades.maxImageCount);
+        uint32_t numeroDeImagens = std::max(capacidades.minImageCount + 1,
+                                            capacidades.maxImageCount);
 
         vk::SwapchainCreateInfoKHR info;
 
@@ -285,7 +296,8 @@ class App {
             std::array<uint32_t, 2> familias{familiaDeApresentacao_,
                                              familiaDeGraficos_};
             info.imageSharingMode = vk::SharingMode::eConcurrent;
-            info.queueFamilyIndexCount = static_cast<uint32_t>(familias.size());
+            info.queueFamilyIndexCount =
+                static_cast<uint32_t>(familias.size());
             info.pQueueFamilyIndices = familias.data();
 
             swapChain_ = dispositivo_.createSwapchainKHR(info);
@@ -297,7 +309,8 @@ class App {
             swapChain_ = dispositivo_.createSwapchainKHR(info);
         }
 
-        imagensDaSwapchain_ = dispositivo_.getSwapchainImagesKHR(swapChain_);
+        imagensDaSwapchain_ =
+            dispositivo_.getSwapchainImagesKHR(swapChain_);
         visoesDasImagensDaSwapchain_.reserve(imagensDaSwapchain_.size());
         for (const auto& imagem : imagensDaSwapchain_) {
             visoesDasImagensDaSwapchain_.push_back(
@@ -318,7 +331,8 @@ class App {
     }
 
     vk::PresentModeKHR escolherModoDeApresentacao(
-        const std::vector<vk::PresentModeKHR>& modosDeApresentacaoDisponiveis) {
+        const std::vector<vk::PresentModeKHR>&
+            modosDeApresentacaoDisponiveis) {
         auto comeco = modosDeApresentacaoDisponiveis.begin();
         auto fim = modosDeApresentacaoDisponiveis.end();
 
@@ -346,8 +360,8 @@ class App {
 
             dimensoes.width =
                 std::clamp(dimensoes.width, minimo.width, maximo.width);
-            dimensoes.height =
-                std::clamp(dimensoes.height, minimo.height, maximo.height);
+            dimensoes.height = std::clamp(dimensoes.height, minimo.height,
+                                          maximo.height);
 
             return dimensoes;
         }
@@ -361,7 +375,8 @@ class App {
         info.viewType = vk::ImageViewType::e2D;
         info.format = formato;
         // info.components = {};
-        info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        info.subresourceRange.aspectMask =
+            vk::ImageAspectFlagBits::eColor;
         info.subresourceRange.baseMipLevel = 0;
         info.subresourceRange.levelCount = 1;
         info.subresourceRange.baseArrayLayer = 0;
@@ -420,14 +435,16 @@ class App {
     }
 
     void criarFramebuffers() {
-        std::transform(
-            visoesDasImagensDaSwapchain_.begin(),
-            visoesDasImagensDaSwapchain_.end(),
-            std::back_inserter(framebuffers_),
-            [this](const vk::ImageView& i) { return criarFramebuffer(i); });
+        std::transform(visoesDasImagensDaSwapchain_.begin(),
+                       visoesDasImagensDaSwapchain_.end(),
+                       std::back_inserter(framebuffers_),
+                       [this](const vk::ImageView& i) {
+                           return criarFramebuffer(i);
+                       });
     }
 
-    vk::Framebuffer criarFramebuffer(const vk::ImageView& imagemDaSwapchain) {
+    vk::Framebuffer criarFramebuffer(
+        const vk::ImageView& imagemDaSwapchain) {
         vk::FramebufferCreateInfo info;
         info.renderPass = passeDeRenderizacao_;
         info.attachmentCount = 1;
@@ -456,8 +473,8 @@ class App {
         std::ifstream arquivoDoShader(caminho, std::ios::binary);
 
         if (!arquivoDoShader.is_open()) {
-            throw std::runtime_error("Não foi possível abrir o arquivo '" +
-                                     caminho + "'!");
+            throw std::runtime_error(
+                "Não foi possível abrir o arquivo '" + caminho + "'!");
         }
 
         std::vector<char> codigoDoShader(
@@ -466,7 +483,8 @@ class App {
 
         vk::ShaderModuleCreateInfo info;
         info.codeSize = codigoDoShader.size();
-        info.pCode = reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+        info.pCode =
+            reinterpret_cast<const uint32_t*>(codigoDoShader.data());
 
         return dispositivo_.createShaderModule(info);
     }
@@ -474,7 +492,10 @@ class App {
     void criarPipeline() {
         std::array<vk::PipelineShaderStageCreateInfo, 2> estagios{
             vk::PipelineShaderStageCreateInfo{
-                {}, vk::ShaderStageFlagBits::eVertex, shaderDeVertices, "main"},
+                {},
+                vk::ShaderStageFlagBits::eVertex,
+                shaderDeVertices,
+                "main"},
             vk::PipelineShaderStageCreateInfo{
                 {},
                 vk::ShaderStageFlagBits::eFragment,
@@ -510,26 +531,31 @@ class App {
 
         vk::PipelineColorBlendAttachmentState misturaDoAnexoDeCor;
         misturaDoAnexoDeCor.colorWriteMask =
-            vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+            vk::ColorComponentFlagBits::eR |
+            vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB |
+            vk::ColorComponentFlagBits::eA;
         misturaDoAnexoDeCor.blendEnable = false;
 
         // Sobrescrita
-        // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eOne;
-        // misturaDoAnexoDeCor.dstColorBlendFactor = vk::BlendFactor::eZero;
-        // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
-        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
-        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcColorBlendFactor =
+        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstColorBlendFactor
+        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.colorBlendOp =
+        // vk::BlendOp::eAdd; misturaDoAnexoDeCor.srcAlphaBlendFactor =
+        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor
+        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
+        // vk::BlendOp::eAdd;
 
         // Alpha blending
-        // misturaDoAnexoDeCor.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+        // misturaDoAnexoDeCor.srcColorBlendFactor =
+        // vk::BlendFactor::eSrcAlpha;
         // misturaDoAnexoDeCor.dstColorBlendFactor =
         //     vk::BlendFactor::eOneMinusSrcAlpha;
         // misturaDoAnexoDeCor.colorBlendOp = vk::BlendOp::eAdd;
-        // misturaDoAnexoDeCor.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-        // misturaDoAnexoDeCor.dstAlphaBlendFactor = vk::BlendFactor::eZero;
-        // misturaDoAnexoDeCor.alphaBlendOp = vk::BlendOp::eAdd;
+        // misturaDoAnexoDeCor.srcAlphaBlendFactor =
+        // vk::BlendFactor::eOne; misturaDoAnexoDeCor.dstAlphaBlendFactor
+        // = vk::BlendFactor::eZero; misturaDoAnexoDeCor.alphaBlendOp =
+        // vk::BlendOp::eAdd;
 
         vk::PipelineColorBlendStateCreateInfo infoMistura;
         infoMistura.attachmentCount = 1;
@@ -563,7 +589,8 @@ class App {
         buffersDeComandos_ = dispositivo_.allocateCommandBuffers(info);
 
         for (size_t i = 0; i < numDeFramebuffers; i++) {
-            gravarBufferDeComandos(buffersDeComandos_[i], framebuffers_[i]);
+            gravarBufferDeComandos(buffersDeComandos_[i],
+                                   framebuffers_[i]);
         }
     }
 
@@ -572,8 +599,8 @@ class App {
         vk::CommandBufferBeginInfo info;
         bufferDeComandos.begin(info);
 
-        vk::ClearValue corDeLimpeza = {
-            vk::ClearColorValue{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}};
+        vk::ClearValue corDeLimpeza = {vk::ClearColorValue{
+            std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}}};
 
         vk::RenderPassBeginInfo infoPasse;
         infoPasse.renderPass = passeDeRenderizacao_;
@@ -600,10 +627,10 @@ class App {
         std::generate(semaforosDeRenderizacaoCompleta_.begin(),
                       semaforosDeRenderizacaoCompleta_.end(),
                       [this]() { return criarSemaforo(); });
-        std::generate(cercasDeQuadros_.begin(), cercasDeQuadros_.end(),
-                      [this]() {
-                          return criarCerca(vk::FenceCreateFlagBits::eSignaled);
-                      });
+        std::generate(
+            cercasDeQuadros_.begin(), cercasDeQuadros_.end(), [this]() {
+                return criarCerca(vk::FenceCreateFlagBits::eSignaled);
+            });
     }
 
     vk::Semaphore criarSemaforo() {
@@ -637,15 +664,16 @@ class App {
 
         uint32_t indiceDaImagem =
             dispositivo_
-                .acquireNextImageKHR(swapChain_,
-                                     std::numeric_limits<uint64_t>::max(),
-                                     semaforoDeImagemDisponivelAtual, nullptr)
+                .acquireNextImageKHR(
+                    swapChain_, std::numeric_limits<uint64_t>::max(),
+                    semaforoDeImagemDisponivelAtual, nullptr)
                 .value;
 
         auto& cercaDaImagemAtual = imagensEmExecucao_[indiceDaImagem];
         if (cercaDaImagemAtual.has_value()) {
-            dispositivo_.waitForFences(cercaDaImagemAtual.value(), false,
-                                       std::numeric_limits<uint64_t>::max());
+            dispositivo_.waitForFences(
+                cercaDaImagemAtual.value(), false,
+                std::numeric_limits<uint64_t>::max());
         }
         cercaDaImagemAtual = cercaAtual;
 
@@ -658,15 +686,18 @@ class App {
         infoSubmissao.pWaitSemaphores = &semaforoDeImagemDisponivelAtual;
         infoSubmissao.pWaitDstStageMask = &estagiosAEsperar;
         infoSubmissao.commandBufferCount = 1;
-        infoSubmissao.pCommandBuffers = &buffersDeComandos_[indiceDaImagem];
+        infoSubmissao.pCommandBuffers =
+            &buffersDeComandos_[indiceDaImagem];
         infoSubmissao.signalSemaphoreCount = 1;
-        infoSubmissao.pSignalSemaphores = &semaforoDeRenderizacaoCompletaAtual;
+        infoSubmissao.pSignalSemaphores =
+            &semaforoDeRenderizacaoCompletaAtual;
 
         filaDeGraficos_.submit(infoSubmissao, cercaAtual);
 
         vk::PresentInfoKHR infoApresentacao;
         infoApresentacao.waitSemaphoreCount = 1;
-        infoApresentacao.pWaitSemaphores = &semaforoDeRenderizacaoCompletaAtual;
+        infoApresentacao.pWaitSemaphores =
+            &semaforoDeRenderizacaoCompletaAtual;
         infoApresentacao.swapchainCount = 1;
         infoApresentacao.pSwapchains = &swapChain_;
         infoApresentacao.pImageIndices = &indiceDaImagem;
@@ -745,9 +776,11 @@ class App {
     vk::RenderPass passeDeRenderizacao_;
 
     vk::PipelineLayout layoutDaPipeline_;
-    const std::string kCaminhoShaderDeVertices = "shaders/shader.vert.spv";
+    const std::string kCaminhoShaderDeVertices =
+        "shaders/shader.vert.spv";
     vk::ShaderModule shaderDeVertices;
-    const std::string kCaminhoShaderDeFragmento = "shaders/shader.frag.spv";
+    const std::string kCaminhoShaderDeFragmento =
+        "shaders/shader.frag.spv";
     vk::ShaderModule shaderDeFragmentos;
     vk::Pipeline pipeline_;
 

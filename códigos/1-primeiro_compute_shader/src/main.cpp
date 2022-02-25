@@ -62,7 +62,8 @@ class App {
     }
 
     bool verificarDisponibilidadeDasCamadasDeValidacao() {
-        auto propriedadesDasCamadas = vk::enumerateInstanceLayerProperties();
+        auto propriedadesDasCamadas =
+            vk::enumerateInstanceLayerProperties();
 
         for (auto&& camada : kCamadasDeValidacao) {
             bool camadaEncontrada = false;
@@ -86,8 +87,8 @@ class App {
         auto dispositivosFisicos = instancia_.enumeratePhysicalDevices();
 
         auto resultado =
-            std::find_if(dispositivosFisicos.begin(), dispositivosFisicos.end(),
-                         verificarDispositivo);
+            std::find_if(dispositivosFisicos.begin(),
+                         dispositivosFisicos.end(), verificarDispositivo);
 
         if (resultado == dispositivosFisicos.end()) {
             throw std::runtime_error(
@@ -97,7 +98,8 @@ class App {
         dispositivoFisico_ = *resultado;
     }
 
-    static bool verificarDispositivo(const vk::PhysicalDevice& dispositivo) {
+    static bool verificarDispositivo(
+        const vk::PhysicalDevice& dispositivo) {
         // auto propriedades = dispositivo.getProperties();
         // auto capacidades = dispositivo.getFeatures();
 
@@ -106,14 +108,16 @@ class App {
 
     static bool verificarFilasDoDispositivo(
         const vk::PhysicalDevice& dispositivo) {
-        return buscarFamiliaDeFilas(dispositivo, vk::QueueFlagBits::eCompute)
+        return buscarFamiliaDeFilas(dispositivo,
+                                    vk::QueueFlagBits::eCompute)
             .has_value();
     }
 
     void criarDispositivoLogicoEFilas() {
-        familiaComputacao_ = buscarFamiliaDeFilas(dispositivoFisico_,
-                                                  vk::QueueFlagBits::eCompute)
-                                 .value();
+        familiaComputacao_ =
+            buscarFamiliaDeFilas(dispositivoFisico_,
+                                 vk::QueueFlagBits::eCompute)
+                .value();
 
         float prioridadeComputacao = 1.0f;
         vk::DeviceQueueCreateInfo infoComputacao;
@@ -142,9 +146,9 @@ class App {
         vk::QueueFlagBits tipo) {
         auto familias = dispositivo.getQueueFamilyProperties();
 
-        auto familia =
-            find_if(familias.begin(), familias.end(),
-                    [tipo](auto familia) { return familia.queueFlags & tipo; });
+        auto familia = find_if(
+            familias.begin(), familias.end(),
+            [tipo](auto familia) { return familia.queueFlags & tipo; });
 
         bool foiEncontrada = familia == familias.end();
         if (foiEncontrada) {
@@ -157,7 +161,8 @@ class App {
     void criarLayoutDosSetDeDescritores() {
         vk::DescriptorSetLayoutBinding associacaoBuffer;
         associacaoBuffer.binding = 0;
-        associacaoBuffer.descriptorType = vk::DescriptorType::eStorageBuffer;
+        associacaoBuffer.descriptorType =
+            vk::DescriptorType::eStorageBuffer;
         associacaoBuffer.descriptorCount = 1;
         associacaoBuffer.stageFlags = vk::ShaderStageFlagBits::eCompute;
         // associacaoBuffer.pImmutableSamplers = nullptr;
@@ -167,7 +172,8 @@ class App {
         info.bindingCount = 1;
         info.pBindings = &associacaoBuffer;
 
-        layoutDoSetDeEntrada_ = dispositivo_.createDescriptorSetLayout(info);
+        layoutDoSetDeEntrada_ =
+            dispositivo_.createDescriptorSetLayout(info);
     }
 
     void criarLayoutDaPipeline() {
@@ -186,8 +192,9 @@ class App {
                                       std::ios::binary);
 
         if (!arquivoDoShader.is_open()) {
-            throw std::runtime_error("Não foi possível abrir o arquivo '" +
-                                     kCamingoDoCodigoDoShader + "'!");
+            throw std::runtime_error(
+                "Não foi possível abrir o arquivo '" +
+                kCamingoDoCodigoDoShader + "'!");
         }
 
         std::vector<char> codigoDoShader(
@@ -197,7 +204,8 @@ class App {
         vk::ShaderModuleCreateInfo info;
         // info.flags = {}
         info.codeSize = codigoDoShader.size();
-        info.pCode = reinterpret_cast<const uint32_t*>(codigoDoShader.data());
+        info.pCode =
+            reinterpret_cast<const uint32_t*>(codigoDoShader.data());
 
         moduloDoShader_ = dispositivo_.createShaderModule(info);
     }
@@ -229,8 +237,8 @@ class App {
     }
 
     void criarPoolDeDescritores() {
-        const auto descritoresTotais = std::array{
-            vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, 1}};
+        const auto descritoresTotais = std::array{vk::DescriptorPoolSize{
+            vk::DescriptorType::eStorageBuffer, 1}};
 
         vk::DescriptorPoolCreateInfo info;
         // info.flags = {}
@@ -258,7 +266,8 @@ class App {
     }
 
     void criarBufferDeEntrada() {
-        criarBuffer(vk::BufferUsageFlagBits::eStorageBuffer, kTamanhoDoBuffer,
+        criarBuffer(vk::BufferUsageFlagBits::eStorageBuffer,
+                    kTamanhoDoBuffer,
                     vk::MemoryPropertyFlagBits::eHostVisible |
                         vk::MemoryPropertyFlagBits::eHostCoherent,
                     buffer_, memoriaBuffer_);
@@ -291,11 +300,12 @@ class App {
             requisitosDeMemoria.memoryTypeBits, propriedades);
 
         memoria = alocarMemoria(requisitosDeMemoria.size, tipoDeMemoria);
-        
+
         dispositivo_.bindBufferMemory(buffer, memoria, 0);
     }
 
-    vk::DeviceMemory alocarMemoria(size_t tamanho, uint32_t tipoDeMemoria) {
+    vk::DeviceMemory alocarMemoria(size_t tamanho,
+                                   uint32_t tipoDeMemoria) {
         vk::MemoryAllocateInfo infoAlloc;
         infoAlloc.allocationSize = tamanho;
         infoAlloc.memoryTypeIndex = tipoDeMemoria;
@@ -310,8 +320,8 @@ class App {
             const auto& tipoDeMemoria = tiposDeMemorias.memoryTypes[i];
 
             bool passaPeloFiltro = (1u << i) & filtro;
-            bool possuiAsPropriedades =
-                (tipoDeMemoria.propertyFlags & propriedades) == propriedades;
+            bool possuiAsPropriedades = (tipoDeMemoria.propertyFlags &
+                                         propriedades) == propriedades;
 
             if (passaPeloFiltro && possuiAsPropriedades) {
                 return i;
@@ -365,9 +375,9 @@ class App {
         bufferDeComandos_.begin(info);
         bufferDeComandos_.bindPipeline(vk::PipelineBindPoint::eCompute,
                                        pipeline_);
-        bufferDeComandos_.bindDescriptorSets(vk::PipelineBindPoint::eCompute,
-                                             layoutDaPipeline_, 0,
-                                             {setDeEntrada_}, {});
+        bufferDeComandos_.bindDescriptorSets(
+            vk::PipelineBindPoint::eCompute, layoutDaPipeline_, 0,
+            {setDeEntrada_}, {});
         bufferDeComandos_.dispatch(
             static_cast<uint32_t>(kNumDeGruposDeTrabalho), 1, 1);
         bufferDeComandos_.end();
@@ -432,7 +442,8 @@ class App {
     vk::DescriptorSetLayout layoutDoSetDeEntrada_;
     vk::PipelineLayout layoutDaPipeline_;
 
-    const std::string kCamingoDoCodigoDoShader = "shaders/filtro.comp.spv";
+    const std::string kCamingoDoCodigoDoShader =
+        "shaders/filtro.comp.spv";
     vk::ShaderModule moduloDoShader_;
     vk::Pipeline pipeline_;
 
