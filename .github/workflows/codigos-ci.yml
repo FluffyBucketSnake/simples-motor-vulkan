@@ -1,4 +1,4 @@
-name: CMake
+name: Integração continua dos códigos
 
 on:
   workflow_dispatch:
@@ -11,8 +11,25 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  testar-codigos:
+  testar:
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        alvo:
+          - 1-primeiro_compute_shader
+          - 2-preto_e_branco
+          - 3-codigo_base
+          - 4-codigo_base_2
+          - 5-triangulo_simples
+          - 6-entrada_dinamica
+          - 7-proj_ortografica
+          - 8-proj_perspectiva
+          - 9-z_buffer
+          - 10-recriando_swapchain
+          - 11-textura
+          - 12-modelo
+          - 13-cena_animada
 
     steps:
       - uses: actions/checkout@v2
@@ -28,12 +45,25 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libglfw3-dev libglm-dev
+       
+      - name: Fazer cache do GLSLC
+        id: cache-glslc
+        uses: actions/cache@v2
+        with:
+          path: /usr/local/bin/glslc
+          key: glslc
 
       - name: Instalar GLSLC
+        if: steps.cache-glslc.outputs.cache-hit != true
         run: |
           wget --quiet https://storage.googleapis.com/shaderc/artifacts/prod/graphics_shader_compiler/shaderc/linux/continuous_clang_release/380/20220202-124409/install.tgz
           tar -xf install.tgz install/bin/glslc
           sudo mv install/bin/glslc /usr/local/bin
 
-      - name: Executar utilidade de teste
-        run: ${{github.workspace}}/utilidades.sh t
+      - name: Configurar projeto
+        working-directory: ${{github.workspace}}/códigos/${{matrix.alvo}}
+        run: cmake -B build
+        
+      - name: Montar projeto
+        working-directory: ${{github.workspace}}/códigos/${{matrix.alvo}}
+        run: cmake --build build
