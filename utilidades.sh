@@ -160,6 +160,7 @@ cmdTestar() {
     printf "\n"
     mostrarAlvosSucedidos "${SUCESSOS[@]}"
     mostrarAlvosFalhados "${FALHAS[@]}"
+    exit $((${#FALHAS[@]} > 0))
 }
 
 erroComandoErrado() {
