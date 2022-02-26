@@ -17,18 +17,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2.4.0
-        
+
       - name: Setup Python
         uses: actions/setup-python@v2.3.2
-        
+
       - name: Obter arquivos modificados
         id: listar-arquivos-modificados
         if: ${{github.event_name == 'push'}}
         uses: tj-actions/changed-files@v17
         with:
-          path: ${{github.workspace}}/códigos
+          path: códigos
           separator: ","
-      
+
       - name: Listar todos os diretórios em códigos
         id: listar-diretorios
         if: ${{github.event_name == 'workflow_dispatch'}}
@@ -37,14 +37,14 @@ jobs:
           python <<EOF
           import json
           import os
-          
+
           subdirs=os.scandir()
           dirs=filter(lambda subdir : subdir.is_dir(), subdirs)
           dirnames=map(lambda dir: dir.name, dirs)
           txt_fmt='::set-output name=dirs::{dirs}'
           print(txt_fmt.format(dirs = json.dumps(list(dirnames))))
           EOF
-        
+
       - name: Filtrar entrada para alvos
         id: filtrar-alvos
         run: |
@@ -66,15 +66,15 @@ jobs:
           print(txt_fmt.format(alvos = txt_json))
           print(txt_json)
           EOF
-    
+
     outputs:
       alvos: ${{steps.filtrar-alvos.outputs.alvos}}
 
   testar-alvos:
     needs: obter-alvos
-  
+
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         alvo: ${{fromJSON(needs.obter-alvos.outputs.alvos)}}
@@ -93,7 +93,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libglfw3-dev libglm-dev
-       
+
       - name: Fazer cache do GLSLC
         id: cache-glslc
         uses: actions/cache@v2
@@ -111,7 +111,7 @@ jobs:
       - name: Configurar projeto
         working-directory: ${{github.workspace}}/códigos/${{matrix.alvo}}
         run: cmake -B build
-        
+
       - name: Montar projeto
         working-directory: ${{github.workspace}}/códigos/${{matrix.alvo}}
         run: cmake --build build
