@@ -32,7 +32,7 @@ jobs:
           subdirs=os.scandir()
           dirs=filter(lambda subdir : subdir.is_dir(), subdirs)
           dirnames=map(lambda dir: dir.name, dirs)
-          txt_fmt='::set-output name=dirs::{value}'
+          txt_fmt='::set-output name=dirs::{dirs}'
           print(txt_fmt.format(dirs = json.dumps(list(dirnames))))
           EOF
     
