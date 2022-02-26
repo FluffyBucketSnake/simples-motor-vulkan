@@ -1497,7 +1497,7 @@ class App {
                     std::numeric_limits<uint64_t>::max(),
                     semaforoASinalizar, nullptr)
                 .value;
-        } catch (const vk::OutOfDateKHRError& _) {
+        } catch (const vk::OutOfDateKHRError&) {
             return {};
         }
     }
@@ -1548,7 +1548,7 @@ class App {
             if (resultado == vk::Result::eSuboptimalKHR) {
                 return true;
             }
-        } catch (const vk::OutOfDateKHRError& _) {
+        } catch (const vk::OutOfDateKHRError&) {
             return true;
         }
 
