@@ -52,29 +52,17 @@ filtrarTodos() {
     echo "${ALVOS_SELECIONADOS[@]}"
 }
 
-prepararMontagem() {
-    local ALVO=$1
-    if ! cd "${PASTA_ALVOS}"; then
-        printf "Erro: não foi possível acessar a pasta de alvos.\n"
-        printf "Caminho: %s\n" "${PASTA_ALVOS}"
-        return 1
-    fi
-    if ! mkdir -p "${ALVO}/build" || ! cd "${ALVO}/build"; then
-        printf "Erro: não foi possível criar ou acessar a pasta de montagem do alvo atual.\n"
-        printf "Caminho: %s\n" "${PASTA_ALVOS}/${ALVO}/build"
-        return 1
-    fi
-}
-
 testarAlvo() {
     local ALVO=$1
-    local BUILD_ALL="${BUILD_ALL:-ninja all}"
     [[ -z "${ALVO}" ]] && return 1
     printf "Testando o código '%s'...\n" "${ALVO}"
-    if ! prepararMontagem "${ALVO}"; then
+    local PASTA_ALVO="${PASTA_ALVOS}/${ALVO}"
+    if ! cd "${PASTA_ALVO}"; then
+        printf "Erro: não foi possível acessar a pasta do alvo.\n"
+        printf "Caminho: %s\n" "${PASTA_ALVO}"
         return 1
     fi
-    if cmake .. && ${BUILD_ALL}; then
+    if cmake -B build && cmake --build build; then
         printf "\nCódigo '%s' montado com sucesso!\n\n" "${ALVO}"
         return 0
     else
