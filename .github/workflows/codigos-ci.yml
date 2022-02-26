@@ -26,6 +26,7 @@ jobs:
         if: ${{github.event_name == 'push'}}
         uses: tj-actions/changed-files@v17
         with:
+          fetch-depth: 0
           path: códigos
           separator: ","
 
