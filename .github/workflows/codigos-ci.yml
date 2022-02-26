@@ -57,10 +57,10 @@ jobs:
             arquivos_adicionados=${{steps.listar-arquivos-modificados.outputs.added_files || '""'}}.split(',')
             arquivos_modificados=${{steps.listar-arquivos-modificados.outputs.modified_files || '""'}}.split(',')
             arquivos=arquivos_adicionados+arquivos_modificados
-            alvos=list(set(map(lambda a: a.split('/')[0], arquivos)))
+            alvos=filter(lambda: a: a and not a.isspace(), map(lambda a: a.split('/')[1], arquivos))
             
             import json
-            txt_json = json.dumps(alvos)
+            txt_json = json.dumps(list(set(alvos)))
             
           elif '${{github.event_name == 'workflow_dispatch'}}' == 'true':
             txt_json='${{steps.listar-diretorios.outputs.dirs}}'
