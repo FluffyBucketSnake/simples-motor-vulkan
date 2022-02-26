@@ -20,10 +20,19 @@ jobs:
         
       - name: Setup Python
         uses: actions/setup-python@v2.3.2
+        
+      - name: Obter arquivos modificados
+        id: listar-arquivos-modificados
+        if: ${{github.event_name == "push"}}
+        uses: tj-actions/changed-files@v17
+        with:
+          path: ${{github.workspace}}/códigos
+          separator: ","
       
-      - name: Listar todas as pastas
+      - name: Listar todos os diretórios em códigos
+        id: listar-diretorios
+        if: ${{github.event_name == "workflow_dispatch"}}
         working-directory: ${{github.workspace}}/códigos
-        id: get-directories
         run: |
           python <<EOF
           import json
@@ -35,9 +44,28 @@ jobs:
           txt_fmt='::set-output name=dirs::{dirs}'
           print(txt_fmt.format(dirs = json.dumps(list(dirnames))))
           EOF
+        
+      - name: Filtrar entrada para alvos
+        id: filtrar-alvos
+        run: |
+          python <<EOF
+          txt_fmt='::set-output name=alvos::{alvos}'
+          if ${{github.event_name == "push"}}:
+            arquivos_adicionados=${{steps.listar-arquivos-modificados.outputs.added_files}}.split(',')
+            arquivos_modificados=${{steps.listar-arquivos-modificados.outputs.modified_files}}.split(',')
+            arquivos=arquivos_adicionados+arquivos_modificados
+            alvos=list(set(map(lambda a: a.split('/')[0], alvos)))
+            
+            import json
+            print(txt_fmt.format(alvos = json.dumps(alvos)))
+            
+          elif ${{github.event_name == "workflow_dispatch"}}:
+            txt_json=${{steps.listar-diretorios.outputs.dirs}}
+            print(txt_fmt.format(alvos = txt_json))
+          EOF
     
     outputs:
-      alvos: ${{steps.get-directories.outputs.dirs}}
+      alvos: ${{steps.filtrar-alvos.outputs.alvos}}
 
   testar-alvos:
     needs: obter-alvos
@@ -46,7 +74,7 @@ jobs:
     
     strategy:
       matrix:
-        alvo: ${{fromJSON(needs.obter-alvos.outputs.alvos)}}
+        alvo: ${{fromJSON(needs.listar-alvos.outputs.alvos)}}
 
     steps:
       - uses: actions/checkout@v2
