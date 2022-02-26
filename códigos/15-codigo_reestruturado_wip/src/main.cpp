@@ -1649,7 +1649,6 @@ class App {
     vk::PhysicalDevice dispositivoFisico_;
     vk::Device dispositivo_;
 
-    uint32_t familiaDeGraficos_;
     vk::Queue filaDeGraficos_;
     uint32_t familiaDeApresentacao_;
     vk::Queue filaDeApresentacao_;
