@@ -56,8 +56,8 @@ jobs:
           if '${{github.event_name == 'push'}}' == 'true':
             arquivos_adicionados=${{steps.listar-arquivos-modificados.outputs.added_files || '""'}}.split(',')
             arquivos_modificados=${{steps.listar-arquivos-modificados.outputs.modified_files || '""'}}.split(',')
-            arquivos=arquivos_adicionados+arquivos_modificados
-            alvos=filter(lambda a: a and not a.isspace(), map(lambda a: a.split('/')[1], arquivos))
+            arquivos=filter(lambda a: a and not a.isspace(), arquivos_adicionados+arquivos_modificados)
+            alvos=map(lambda a: a.split('/')[1], arquivos)
             
             import json
             txt_json = json.dumps(list(set(alvos)))
