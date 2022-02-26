@@ -17,14 +17,21 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Instalar dependências principais
+      - name: Instalar SDK da Vulkan
+        run: |
+          wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.204-focal.list https://packages.lunarg.com/vulkan/1.3.204/lunarg-vulkan-1.3.204-focal.list
+          sudo apt update
+          sudo apt install vulkan-sdk
+
+      - name: Instalar outras dependências
         run: |
           sudo apt update
-          sudo apt install libvulkan-dev vulkan-validationlayers-dev spirv-tools libglfw3-dev libglm-dev
+          sudo apt install libglfw3-dev libglm-dev
 
       - name: Instalar GLSLC
         run: |
-          wget https://storage.googleapis.com/shaderc/artifacts/prod/graphics_shader_compiler/shaderc/linux/continuous_clang_release/380/20220202-124409/install.tgz
+          wget --quiet https://storage.googleapis.com/shaderc/artifacts/prod/graphics_shader_compiler/shaderc/linux/continuous_clang_release/380/20220202-124409/install.tgz
           tar -xf install.tgz install/bin/glslc
           sudo mv install/bin/glslc /usr/local/bin
 
