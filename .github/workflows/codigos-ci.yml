@@ -51,8 +51,8 @@ jobs:
           python <<EOF
           txt_fmt='::set-output name=alvos::{alvos}'
           if ${{github.event_name == 'push'}}:
-            arquivos_adicionados=${{steps.listar-arquivos-modificados.outputs.added_files}}.split(',')
-            arquivos_modificados=${{steps.listar-arquivos-modificados.outputs.modified_files}}.split(',')
+            arquivos_adicionados=${{steps.listar-arquivos-modificados.outputs.added_files || '""'}}.split(',')
+            arquivos_modificados=${{steps.listar-arquivos-modificados.outputs.modified_files || '""'}}.split(',')
             arquivos=arquivos_adicionados+arquivos_modificados
             alvos=list(set(map(lambda a: a.split('/')[0], alvos)))
             
