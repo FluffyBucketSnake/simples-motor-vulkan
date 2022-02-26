@@ -57,7 +57,7 @@ jobs:
             arquivos_adicionados=${{steps.listar-arquivos-modificados.outputs.added_files || '""'}}.split(',')
             arquivos_modificados=${{steps.listar-arquivos-modificados.outputs.modified_files || '""'}}.split(',')
             arquivos=arquivos_adicionados+arquivos_modificados
-            alvos=list(set(map(lambda a: a.split('/')[0], alvos)))
+            alvos=list(set(map(lambda a: a.split('/')[0], arquivos)))
             
             import json
             txt_json = json.dumps(alvos)
