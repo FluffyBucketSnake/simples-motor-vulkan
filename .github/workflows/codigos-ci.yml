@@ -50,6 +50,7 @@ jobs:
         run: |
           python <<EOF
           txt_fmt='::set-output name=alvos::{alvos}'
+          txt_json=''
           if '${{github.event_name == 'push'}}' == 'true':
             arquivos_adicionados=${{steps.listar-arquivos-modificados.outputs.added_files || '""'}}.split(',')
             arquivos_modificados=${{steps.listar-arquivos-modificados.outputs.modified_files || '""'}}.split(',')
@@ -57,11 +58,13 @@ jobs:
             alvos=list(set(map(lambda a: a.split('/')[0], alvos)))
             
             import json
-            print(txt_fmt.format(alvos = json.dumps(alvos)))
+            txt_json = json.dumps(alvos)
             
           elif '${{github.event_name == 'workflow_dispatch'}}' == 'true':
             txt_json='${{steps.listar-diretorios.outputs.dirs}}'
-            print(txt_fmt.format(alvos = txt_json))
+            
+          print(txt_fmt.format(alvos = txt_json))
+          print(txt_json)
           EOF
     
     outputs:
