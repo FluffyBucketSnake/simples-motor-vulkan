@@ -8,5 +8,6 @@ layout(binding = 1) uniform sampler2D textura;
 layout(location = 0) out vec4 saidaCor;
 
 void main() {
-    saidaCor = vec4(fragCor, 1.0) * texture(textura, fragCoordTex);
+    saidaCor =
+        vec4(fragCor, 1.0) * texture(textura, fragCoordTex);
 }

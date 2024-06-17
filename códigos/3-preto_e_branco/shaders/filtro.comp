@@ -1,13 +1,16 @@
 #version 450
 
-layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+layout(local_size_x = 32,
+       local_size_y = 32,
+       local_size_z = 1) in;
 
 layout(set = 0, binding = 0, rgba8) uniform image2D alvo;
 
 void main() {
-  ivec2 posicao = ivec2(gl_GlobalInvocationID.xy);
-  vec4 corFonte = imageLoad(alvo, posicao);
-  float luma = 0.299 * corFonte.r + 0.587 * corFonte.g + 0.114 * corFonte.b;
-  vec4 corDestino = vec4(vec3(luma), 1.0);
-  imageStore(alvo, posicao, corDestino);
+    ivec2 posicao = ivec2(gl_GlobalInvocationID.xy);
+    vec4 corFonte = imageLoad(alvo, posicao);
+    float luma = 0.299 * corFonte.r + 0.587 * corFonte.g +
+                 0.114 * corFonte.b;
+    vec4 corDestino = vec4(vec3(luma), 1.0);
+    imageStore(alvo, posicao, corDestino);
 }
